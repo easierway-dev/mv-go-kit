@@ -1,4 +1,4 @@
-module github.com/bj-wangjia/go-kit
+module gitlab.mobvista.com/voyager/mv-go-kit
 
 go 1.12
 
