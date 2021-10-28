@@ -9,5 +9,8 @@ require (
 	github.com/shirou/gopsutil v2.19.10+incompatible
 	github.com/sirupsen/logrus v1.4.2
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.25.0
+	go.opentelemetry.io/otel v1.1.0
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.1.0
+	go.opentelemetry.io/otel/sdk v1.1.0
 	google.golang.org/grpc v1.40.0
 )
