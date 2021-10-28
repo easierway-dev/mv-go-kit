@@ -5,7 +5,6 @@ import (
 	"errors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
-	"log"
 	"sync"
 	"time"
 )
@@ -14,6 +13,7 @@ type ClientPool struct {
 	consulResolver *ConsulResolver
 	connPool       sync.Map
 	timeout        time.Duration
+	traceOn        bool
 }
 
 type ConnWithTs struct {
@@ -59,6 +59,9 @@ func (pool *ClientPool) InitPool() {
 	go pool.watch()
 }
 
+func (pool *ClientPool) WithTracerOn() {
+	pool.traceOn = true
+}
 func (pool *ClientPool) watch() {
 	// every 30 second
 	// delete unused connection
@@ -108,18 +111,19 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 }
 
 func (pool *ClientPool) NewConnectWithAddr(addr string) (*grpc.ClientConn, error) {
-	tp := Init()
-	defer func() {
-		if err := tp.Shutdown(context.Background()); err != nil {
-			log.Printf("Error shutting down tracer provider: %v", err)
-		}
-	}()
+
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
+	pool.WithTracerOn()
+	if !pool.traceOn {
+		conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure())
+		return conn, err
+	}
 	conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure(),
 		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
 	return conn, err
+
 }
 
 func (pool *ClientPool) getNodeAddr() (string, error) {
