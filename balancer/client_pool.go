@@ -3,10 +3,10 @@ package balancer
 import (
 	"context"
 	"errors"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
 	"sync"
 	"time"
-
-	"google.golang.org/grpc"
 )
 
 type ClientPool struct {
@@ -73,7 +73,7 @@ func (pool *ClientPool) watch() {
 							connWithTs.Conn.Close()
 						}
 						pool.connPool.Delete(key)
-						
+
 					}
 				}
 				return true
@@ -109,7 +109,9 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 func (pool *ClientPool) NewConnectWithAddr(addr string) (*grpc.ClientConn, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
 	return conn, err
 
 }
@@ -155,6 +157,7 @@ func (pool *ClientPool) Get() (*grpc.ClientConn, error) {
 	connWithTs := val.(*ConnWithTs)
 	return connWithTs.Conn, nil
 }
+
 /*
 // delete conn from pool when error
 func (pool *ClientPool) DropConnByAddr(addr string) {
