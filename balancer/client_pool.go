@@ -59,7 +59,7 @@ func (pool *ClientPool) InitPool() {
 	go pool.watch()
 }
 
-func (pool *ClientPool) WithTraceOn() {
+func (pool *ClientPool) WithOtelTraceOn() {
 	pool.traceOn = true
 }
 func (pool *ClientPool) watch() {
