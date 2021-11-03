@@ -28,21 +28,21 @@ type Config struct {
 
 type Option func(*Config)
 
-// 设置是否有ConsulResolver
+// 设置ConsulResolver
 func WithConsulResolver(resolver *ConsulResolver) Option {
 	return func(c *Config) {
 		c.consulResolver = resolver
 	}
 }
 
-// 设置是否有Timeout
+// 设置Timeout
 func WithTimeout(timeout time.Duration) Option {
 	return func(c *Config) {
 		c.timeout = timeout
 	}
 }
 
-// 设置是否有TraceOn
+// 设置TraceOn
 func WithOtelTraceOn(b bool) Option {
 	return func(c *Config) {
 		c.traceOn = b
@@ -74,8 +74,8 @@ func NewClientPool(address string, service string, myService string, interval ti
 	return NewClientPoolWithResolver(resolver, timeout)
 }
 
-func NewClientPoolWithConfig(resolver *ConsulResolver, timeout time.Duration) (*ClientPool, error) {
-	config := NewConfig(WithConsulResolver(resolver), WithTimeout(timeout), WithOtelTraceOn(true))
+func NewClientPoolWithConfig(config *Config, resolver *ConsulResolver, timeout time.Duration) (*ClientPool, error) {
+	config = NewConfig(WithConsulResolver(resolver), WithTimeout(timeout), WithOtelTraceOn(true))
 	clientPool := &ClientPool{}
 	clientPool.consulResolver = config.consulResolver
 	clientPool.timeout = config.timeout
