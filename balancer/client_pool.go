@@ -74,8 +74,7 @@ func NewClientPool(address string, service string, myService string, interval ti
 	return NewClientPoolWithResolver(resolver, timeout)
 }
 
-func NewClientPoolWithConfig(config *Config, resolver *ConsulResolver, timeout time.Duration) (*ClientPool, error) {
-	config = NewConfig(WithConsulResolver(resolver), WithTimeout(timeout), WithOtelTraceOn(true))
+func NewClientPoolWithConfig(config *Config) (*ClientPool, error) {
 	clientPool := &ClientPool{}
 	clientPool.consulResolver = config.consulResolver
 	clientPool.timeout = config.timeout
