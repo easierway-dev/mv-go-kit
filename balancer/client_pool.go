@@ -20,6 +20,42 @@ type ConnWithTs struct {
 	UpdateTime int64
 	Conn       *grpc.ClientConn
 }
+type Config struct {
+	consulResolver *ConsulResolver
+	timeout        time.Duration
+	traceOn        bool
+}
+
+type Option func(*Config)
+
+// 设置是否有ConsulResolver
+func WithConsulResolver(resolver *ConsulResolver) Option {
+	return func(c *Config) {
+		c.consulResolver = resolver
+	}
+}
+
+// 设置是否有Timeout
+func WithTimeout(timeout time.Duration) Option {
+	return func(c *Config) {
+		c.timeout = timeout
+	}
+}
+
+// 设置是否有TraceOn
+func WithOtelTraceOn(b bool) Option {
+	return func(c *Config) {
+		c.traceOn = b
+	}
+}
+
+func NewConfig(opts ...Option) *Config {
+	var c Config
+	for _, opt := range opts {
+		opt(&c)
+	}
+	return &c
+}
 
 func NewClientPool(address string, service string, myService string, interval time.Duration,
 	serviceRatio float64, cpuThreshold float64, zone string, timeout time.Duration) (*ClientPool, error) {
@@ -36,6 +72,16 @@ func NewClientPool(address string, service string, myService string, interval ti
 		return nil, err
 	}
 	return NewClientPoolWithResolver(resolver, timeout)
+}
+
+func NewClientPoolWithConfig(resolver *ConsulResolver, timeout time.Duration) (*ClientPool, error) {
+	config := NewConfig(WithConsulResolver(resolver), WithTimeout(timeout), WithOtelTraceOn(true))
+	clientPool := &ClientPool{}
+	clientPool.consulResolver = config.consulResolver
+	clientPool.timeout = config.timeout
+	clientPool.traceOn = config.traceOn
+	clientPool.InitPool()
+	return clientPool, nil
 }
 
 func NewClientPoolWithResolver(resolver *ConsulResolver, timeout time.Duration) (*ClientPool, error) {
@@ -59,9 +105,6 @@ func (pool *ClientPool) InitPool() {
 	go pool.watch()
 }
 
-func (pool *ClientPool) WithOtelTraceOn() {
-	pool.traceOn = true
-}
 func (pool *ClientPool) watch() {
 	// every 30 second
 	// delete unused connection
