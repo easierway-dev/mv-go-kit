@@ -156,12 +156,12 @@ func (pool *ClientPool) NewConnectWithAddr(addr string) (*grpc.ClientConn, error
 
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
-	// pool.traceOn为true,不调用otelgrpc的拦截器
+	// pool.traceOn为false不调用otelgrpc的拦截器
 	if !pool.traceOn {
 		conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure())
 		return conn, err
 	}
-	// 否则,调用otelgrpc的拦截器
+	// pool.traceOn为true,调用otelgrpc的拦截器
 	conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure(),
 		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
