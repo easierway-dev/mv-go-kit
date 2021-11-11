@@ -152,19 +152,23 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 	return nil, "", err
 }
 
+// 管理客户端拦截器
+func UnaryClientInterceptor() grpc.UnaryClientInterceptor {
+	grpcUnaryClientInterceptor := otelgrpc.UnaryClientInterceptor()
+	return grpcUnaryClientInterceptor
+}
 func (pool *ClientPool) NewConnectWithAddr(addr string) (*grpc.ClientConn, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
-	// pool.traceOn为false不调用otelgrpc的拦截器
+	// pool.traceOn为false,不调用otelgrpc的拦截器
 	if !pool.traceOn {
 		conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure())
 		return conn, err
 	}
 	// pool.traceOn为true,调用otelgrpc的拦截器
 	conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
-		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
+		grpc.WithUnaryInterceptor(UnaryClientInterceptor()))
 	return conn, err
 
 }
