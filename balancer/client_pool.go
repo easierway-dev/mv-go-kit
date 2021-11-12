@@ -14,7 +14,7 @@ type ClientPool struct {
 	connPool       sync.Map
 	timeout        time.Duration
 	traceOn        bool
-	opts           []grpc.DialOption
+	dialOpts       []grpc.DialOption
 }
 
 type ConnWithTs struct {
@@ -143,7 +143,8 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 		if addr == "" {
 			continue
 		}
-
+		// 初始化客户端选项
+		pool.SetClientDialOption()
 		conn, err := pool.NewConnectWithAddr(addr)
 		if err == nil {
 			return conn, addr, err
@@ -154,22 +155,22 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 }
 
 // 管理客户端操作选项
-func (pool *ClientPool) ClientDialOption() []grpc.DialOption {
+func (pool *ClientPool) SetClientDialOption() {
 	// traceOn为true,添加客户端拦截器
 	if pool.traceOn {
-		return append(pool.opts, grpc.WithBlock(), grpc.WithInsecure(),
+		pool.dialOpts = append(pool.dialOpts, grpc.WithBlock(), grpc.WithInsecure(),
 			grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 			grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
 	} else {
 		// 否则,不添加客户端拦截器
-		return append(pool.opts, grpc.WithBlock(), grpc.WithInsecure())
+		pool.dialOpts = append(pool.dialOpts, grpc.WithBlock(), grpc.WithInsecure())
 	}
 }
 
 func (pool *ClientPool) NewConnectWithAddr(addr string) (*grpc.ClientConn, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, addr, pool.ClientDialOption()...)
+	conn, err := grpc.DialContext(ctx, addr, pool.dialOpts...)
 	return conn, err
 }
 
@@ -196,7 +197,8 @@ func (pool *ClientPool) Get() (*grpc.ClientConn, error) {
 	}
 
 	var conn *grpc.ClientConn
-
+	// 初始化客户端选项
+	pool.SetClientDialOption()
 	// 2nd: use the picked address for new connection
 	conn, err = pool.NewConnectWithAddr(addr)
 	if err != nil {
