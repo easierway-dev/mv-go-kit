@@ -156,14 +156,11 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 
 // 管理客户端操作选项
 func (pool *ClientPool) SetClientDialOption() {
+	pool.dialOpts = append(pool.dialOpts, grpc.WithBlock(), grpc.WithInsecure())
 	// traceOn为true,添加客户端拦截器
 	if pool.traceOn {
-		pool.dialOpts = append(pool.dialOpts, grpc.WithBlock(), grpc.WithInsecure(),
-			grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+		pool.dialOpts = append(pool.dialOpts, grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 			grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
-	} else {
-		// 否则,不添加客户端拦截器
-		pool.dialOpts = append(pool.dialOpts, grpc.WithBlock(), grpc.WithInsecure())
 	}
 }
 
