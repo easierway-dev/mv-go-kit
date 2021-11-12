@@ -14,6 +14,7 @@ type ClientPool struct {
 	connPool       sync.Map
 	timeout        time.Duration
 	traceOn        bool
+	opts           []grpc.DialOption
 }
 
 type ConnWithTs struct {
@@ -152,24 +153,24 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 	return nil, "", err
 }
 
-// 管理客户端一元拦截器
-func UnaryClientInterceptor() grpc.UnaryClientInterceptor {
-	return otelgrpc.UnaryClientInterceptor()
+// 管理客户端操作选项
+func (pool *ClientPool) ClientDialOption() []grpc.DialOption {
+	// traceOn为true,添加客户端拦截器
+	if pool.traceOn {
+		return append(pool.opts, grpc.WithBlock(), grpc.WithInsecure(),
+			grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+			grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
+	} else {
+		// 否则,不添加客户端拦截器
+		return append(pool.opts, grpc.WithBlock(), grpc.WithInsecure())
+	}
 }
 
-// 管理客户端流拦截器
-func StreamClientInterceptor() grpc.StreamClientInterceptor {
-	return otelgrpc.StreamClientInterceptor()
-}
 func (pool *ClientPool) NewConnectWithAddr(addr string) (*grpc.ClientConn, error) {
-
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(UnaryClientInterceptor()),
-		grpc.WithStreamInterceptor(StreamClientInterceptor()))
+	conn, err := grpc.DialContext(ctx, addr, pool.ClientDialOption()...)
 	return conn, err
-
 }
 
 func (pool *ClientPool) getNodeAddr() (string, error) {
