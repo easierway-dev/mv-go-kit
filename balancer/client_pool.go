@@ -80,6 +80,8 @@ func NewClientPoolWithConfig(config *Config) (*ClientPool, error) {
 	clientPool.consulResolver = config.consulResolver
 	clientPool.timeout = config.timeout
 	clientPool.traceOn = config.traceOn
+	// 添加客户端选项
+	clientPool.SetClientDialOption()
 	clientPool.InitPool()
 	return clientPool, nil
 }
@@ -143,8 +145,6 @@ func (pool *ClientPool) NewConnect() (*grpc.ClientConn, string, error) {
 		if addr == "" {
 			continue
 		}
-		// 初始化客户端选项
-		pool.SetClientDialOption()
 		conn, err := pool.NewConnectWithAddr(addr)
 		if err == nil {
 			return conn, addr, err
@@ -197,8 +197,7 @@ func (pool *ClientPool) Get() (*grpc.ClientConn, error) {
 	}
 
 	var conn *grpc.ClientConn
-	// 初始化客户端选项
-	pool.SetClientDialOption()
+
 	// 2nd: use the picked address for new connection
 	conn, err = pool.NewConnectWithAddr(addr)
 	if err != nil {
