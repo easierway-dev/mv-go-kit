@@ -2,6 +2,7 @@ package discover
 
 import (
 	"errors"
+	"time"
 
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
 )
@@ -15,10 +16,10 @@ type Discover interface {
 }
 
 func NewDiscover(discoverType int, address string, discoverNode string,
-	interval time.Duration, notify DiscoverNotify) (Discover, error) {
+	interval time.Duration, notify DiscoverNotify, logger balancer_common.Logger) (Discover, error) {
 	switch discoverType {
-	case ConsulDiscover:
-		discover, err := NewConsulDiscover(address, discoverNode, interval, notify)
+	case balancer_common.ConsulDiscover:
+		discover, err := NewConsulDiscover(address, discoverNode, interval, notify, logger)
 		if err != nil {
 			return nil, err
 		}

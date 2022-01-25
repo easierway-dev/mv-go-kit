@@ -1,6 +1,9 @@
 package balancer_v2
 
 import (
+	"sync"
+	"time"
+
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/balancer"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/discover"
@@ -8,25 +11,25 @@ import (
 )
 
 type BalancerResolver struct {
-	discover Discover
-	balancer Balancer
+	discover discover.Discover
+	balancer balancer.Balancer
 
-	zoneAdjuster    *WeightAdjuster
-	serviceAdjuster *WeightAdjuster
+	zoneAdjuster    *weight_cal.WeightAdjuster
+	serviceAdjuster *weight_cal.WeightAdjuster
 
-	nodes      []*ServiceNode //Service Node
-	interval   time.Duration  //Update Time
-	updateTime uint64
+	nodes      []*balancer_common.ServiceNode //Service Node
+	interval   time.Duration                  //Update Time
+	updateTime int64
 
 	mutex sync.Mutex
 }
 
 func NewBalancerResolver(balancerType, discoverType int, zoneName string,
-	address string, discoverNode string, interval time.Duration) (*BalancerResolver, error) {
+	address string, discoverNode string, interval time.Duration, logger balancer_common.Logger) (*BalancerResolver, error) {
 	//create resolver
-	resolver = &BalancerResolver{interval: interval}
+	resolver := &BalancerResolver{interval: interval}
 	//create balancer
-	balancer, err := NewBalancer(balancerType, zoneName)
+	balancer, err := balancer.NewBalancer(balancerType, zoneName)
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +38,14 @@ func NewBalancerResolver(balancerType, discoverType int, zoneName string,
 	resolver.zoneAdjuster = weight_cal.NewWeightAdjuster()
 	resolver.serviceAdjuster = weight_cal.NewWeightAdjuster()
 	//create discover
-	discover, err := NewDiscover(discoverType, address, interval, resolver)
+	discover, err := discover.NewDiscover(discoverType, address, discoverNode, interval, resolver, logger)
 	if err != nil {
 		return nil, err
 	}
 	resolver.discover = discover
 	//start UpdateBalancerByTimer
 	resolver.UpdateBalancerByTimer(interval)
-	return resolver
+	return resolver, nil
 }
 
 func (resolver *BalancerResolver) Notify(address string, zone string, event int) {
@@ -62,7 +65,7 @@ func (resolver *BalancerResolver) UpdateBalancerByTimer(interval time.Duration) 
 	}()
 }
 
-func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*ServiceNode) {
+func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
 	//lock
 	resolver.mutex.Lock()
 	defer resolver.mutex.Unlock()

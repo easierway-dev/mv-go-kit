@@ -1,8 +1,10 @@
 package balancer
 
 import (
-	"sort"
+	"errors"
+	"math/rand"
 	"sync/atomic"
+	"time"
 
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/weight_cal"
@@ -21,15 +23,19 @@ func NewWeightedRoundRobin(localZoneName string) Balancer {
 }
 
 func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_common.ServiceNode,
-	zoneAdjuster, serviceAdjuster *weight_cal.WeightAdjuster) {
+	zoneAdjuster, serviceAdjuster *weight_cal.WeightAdjuster) error {
 	balancer.Weights = make([]*balancer_common.ServiceNode, 0, len(nodes))
 	for _, node := range nodes {
 		//cul zone Weight
-		weight := node.Weight *
+		weight := float64(node.Weight) *
 			weight_cal.GetZoneWeight(zoneAdjuster, balancer.LocalZoneName, node.Zone) *
 			weight_cal.GetServiceWeight(serviceAdjuster, node.Zone)
+		culWeight := int(weight)
+		if culWeight <= 0 {
+			culWeight = 1
+		}
 		//add node
-		for i := 0; i < weight; i++ {
+		for i := 0; i < culWeight; i++ {
 			balancer.Weights = append(balancer.Weights, node)
 		}
 	}
@@ -43,9 +49,10 @@ func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_com
 }
 
 func (balancer *WeightedRoundRobinBalancer) DiscoverNode() (*balancer_common.ServiceNode, error) {
-	if len(balancer.Weights) == 0 {
+	size := int64(len(balancer.Weights))
+	if size == 0 {
 		return nil, errors.New("empty service nodes")
 	}
-	idx := atomic.AddInt64(balancer.Count, 1) % len(balancer.Weights)
+	idx := int(atomic.AddInt64(&balancer.Count, 1) % size)
 	return balancer.Weights[idx], nil
 }

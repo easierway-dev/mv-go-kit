@@ -1,5 +1,12 @@
 package balancer
 
+import (
+	"errors"
+
+	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
+	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/weight_cal"
+)
+
 //struct RandomBalancer
 type RandomBalancer struct {
 	LocalZoneName string

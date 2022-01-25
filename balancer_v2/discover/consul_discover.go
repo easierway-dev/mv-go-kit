@@ -1,6 +1,12 @@
 package discover
 
 import (
+	"fmt"
+	"net"
+	"strconv"
+	"time"
+
+	"github.com/hashicorp/consul/api"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
 )
 
@@ -12,11 +18,14 @@ type ConsulDiscover struct {
 	nodes        []*balancer_common.ServiceNode
 	interval     time.Duration
 	notify       DiscoverNotify
+	stop         bool
+
+	logger balancer_common.Logger
 }
 
 //new discover
 func NewConsulDiscover(address string, discoverNode string,
-	interval time.Duration, notify DiscoverNotify) (*ConsulDiscover, error) {
+	interval time.Duration, notify DiscoverNotify, logger balancer_common.Logger) (*ConsulDiscover, error) {
 	config := api.DefaultConfig()
 	config.Address = address
 	client, err := api.NewClient(config)
@@ -29,22 +38,24 @@ func NewConsulDiscover(address string, discoverNode string,
 		discoverNode: discoverNode,
 		interval:     interval,
 		notify:       notify,
+		stop:         false,
+		logger:       logger,
 	}
 	//start timer
 	if err := discover.Start(); err != nil {
 		return nil, err
 	}
-	return r, nil
+	return discover, nil
 }
 
 //Start timer
 func (discover *ConsulDiscover) Start() error {
-	if err := r.updateService(); err != nil {
+	if err := discover.updateService(); err != nil {
 		return err
 	}
 	go func() {
 		for range time.Tick(discover.interval) {
-			if discover.done {
+			if discover.stop {
 				break
 			}
 			if err := discover.updateService(); err != nil && discover.logger != nil {
@@ -58,7 +69,7 @@ func (discover *ConsulDiscover) Start() error {
 //update service
 func (discover *ConsulDiscover) updateService() error {
 	//get services list
-	services, metainfo, err := discover.client.Health().Service(discover.service, "", true, &api.QueryOptions{
+	services, metainfo, err := discover.client.Health().Service(discover.discoverNode, "", true, &api.QueryOptions{
 		WaitIndex:  discover.lastIndex,
 		AllowStale: true,
 	})
@@ -78,7 +89,7 @@ func (discover *ConsulDiscover) updateService() error {
 		}
 		weight := 100
 		if weightStr, ok := service.Service.Meta["weight"]; ok {
-			weightInt, err := strconv.Itoa(weightStr)
+			weightInt, err := strconv.Atoi(weightStr)
 			if err != nil && weightInt > 0 {
 				weight = weightInt
 			}
@@ -94,8 +105,12 @@ func (discover *ConsulDiscover) updateService() error {
 	}
 	discover.nodes = nodes
 	//notify
-	if notify != nil {
-		notify.UpdateServicesNotify(nodes)
+	if discover.notify != nil {
+		discover.notify.UpdateServicesNotify(nodes)
 	}
 	return nil
+}
+
+func (discover *ConsulDiscover) Stop() {
+	discover.stop = true
 }

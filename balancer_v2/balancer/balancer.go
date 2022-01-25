@@ -21,12 +21,12 @@ type BalancerSelector struct {
 
 func NewBalancer(balancerType int, zoneName string) (Balancer, error) {
 	switch balancerType {
-	case RoundRobin, ConsistentHash:
+	case balancer_common.RoundRobin, balancer_common.ConsistentHash:
 		return nil, errors.New("no support")
-	case RandomSelect:
-		return NewRandomBalancer(zoneName)
-	case WeightedRoundRobin:
-		return NewWeightedRoundRobin(zoneName)
+	case balancer_common.RandomSelect:
+		return NewRandomBalancer(zoneName), nil
+	case balancer_common.WeightedRoundRobin:
+		return NewWeightedRoundRobin(zoneName), nil
 	default:
 		return nil, errors.New("undefine balance type")
 	}
