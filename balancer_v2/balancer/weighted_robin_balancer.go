@@ -31,9 +31,6 @@ func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_com
 			weight_cal.GetZoneWeight(zoneAdjuster, balancer.LocalZoneName, node.Zone) *
 			weight_cal.GetServiceWeight(serviceAdjuster, node.Zone)
 		culWeight := int(weight)
-		if culWeight <= 0 {
-			culWeight = 1
-		}
 		//add node
 		for i := 0; i < culWeight; i++ {
 			balancer.Weights = append(balancer.Weights, node)
