@@ -52,7 +52,7 @@ func (adjuster *WeightAdjuster) Notify(key string, event int) {
 		defer adjuster.mutex.Unlock()
 		adjuster.counters[key] = counter
 	}
-
+	//atomic add
 	switch event {
 	case balancer_common.Success:
 		atomic.AddInt32(&counter.SuccessCount, 1)

@@ -11,8 +11,8 @@ import (
 )
 
 type BalancerResolver struct {
-	discover discover.Discover
-	balancer balancer.Balancer
+	discover discover.Discover //service discover
+	balancer balancer.Balancer //balancer
 
 	zoneAdjuster    *weight_cal.WeightAdjuster
 	serviceAdjuster *weight_cal.WeightAdjuster
