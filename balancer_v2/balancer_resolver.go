@@ -71,10 +71,10 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 	defer resolver.mutex.Unlock()
 	//updateTime
 	now := time.Now().Unix()
-	resolver.updateTime = time.Now().Unix()
 	if now-resolver.updateTime < int64(resolver.interval) {
 		return
 	}
+	resolver.updateTime = now
 	//update weight_cal
 	if resolver.balancer != nil {
 		resolver.balancer.UpdateServices(nodes, resolver.zoneAdjuster, resolver.serviceAdjuster)

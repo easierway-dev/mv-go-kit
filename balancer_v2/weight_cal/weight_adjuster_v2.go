@@ -23,14 +23,18 @@ type Counter struct {
 }
 
 func NewWeightAdjuster() *WeightAdjuster {
-	return &WeightAdjuster{}
+	return &WeightAdjuster{
+		counters: make(map[string]*Counter),
+	}
 }
 
 func (adjuster *WeightAdjuster) Notify(key string, event int) {
 	//init member
 	now := time.Now().Unix()
 	//check filed
+	adjuster.mutex.RLock()
 	counter, ok := adjuster.counters[key]
+	adjuster.mutex.RUnlock()
 	if !ok {
 		counter = &Counter{
 			Timestamp: now,

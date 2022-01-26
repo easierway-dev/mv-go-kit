@@ -11,8 +11,8 @@ func GetZoneWeight(zoneAdjuster *WeightAdjuster, localZone string, serviceZone s
 	}
 }
 
-func GetServiceWeight(serviceWeight *WeightAdjuster, serviceZone string) float64 {
-	ratio := serviceWeight.GetWeight(serviceZone)
+func GetServiceWeight(serviceWeight *WeightAdjuster, serviceNode string) float64 {
+	ratio := serviceWeight.GetWeight(serviceNode)
 	return GetRatioByStep(ratio)
 }
 
