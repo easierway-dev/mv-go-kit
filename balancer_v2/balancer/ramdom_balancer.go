@@ -10,11 +10,13 @@ import (
 //struct RandomBalancer
 type RandomBalancer struct {
 	LocalZoneName string
+	NodeName      string
 }
 
-func NewRandomBalancer(localZoneName string) Balancer {
+func NewRandomBalancer(localZoneName string, discoverNode string) Balancer {
 	return &RandomBalancer{
 		LocalZoneName: localZoneName,
+		NodeName:      discoverNode,
 	}
 }
 

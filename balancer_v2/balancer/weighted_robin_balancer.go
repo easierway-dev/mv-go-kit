@@ -12,13 +12,15 @@ import (
 
 type WeightedRoundRobinBalancer struct {
 	LocalZoneName string
+	NodeName      string
 	Count         int64
 	Weights       []*balancer_common.ServiceNode
 }
 
-func NewWeightedRoundRobin(localZoneName string) Balancer {
+func NewWeightedRoundRobin(localZoneName string, discoverNode string) Balancer {
 	return &WeightedRoundRobinBalancer{
 		LocalZoneName: localZoneName,
+		NodeName:      discoverNode,
 	}
 }
 
@@ -27,9 +29,11 @@ func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_com
 	weights := make([]*balancer_common.ServiceNode, 0, len(nodes))
 	//open zone cul
 	useZoneCul := false
+	useZoneCulStr := "0"
 	if len(balancer.LocalZoneName) != 0 {
 		for _, node := range nodes {
 			if balancer.LocalZoneName == node.Zone {
+				useZoneCulStr = "1"
 				useZoneCul = true
 				break
 			}
@@ -38,12 +42,17 @@ func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_com
 	//cul weight
 	for _, node := range nodes {
 		//cul zone Weight
-		weight := float64(node.Weight) *
-			weight_cal.GetServiceWeight(serviceAdjuster, node.Address)
+		serviceWeight := weight_cal.GetServiceWeight(serviceAdjuster, node.Address)
+		weight := float64(node.Weight) * serviceWeight
+		zoneWeight := weight_cal.GetZoneWeight(zoneAdjuster, balancer.LocalZoneName, node.Zone)
 		if useZoneCul {
-			weight *= weight_cal.GetZoneWeight(zoneAdjuster, balancer.LocalZoneName, node.Zone)
+			weight *= zoneWeight
 		}
 		culWeight := int(weight)
+		//add metrics
+		balancer_common.ZoneWeightHistogramVec.WithLabelValues(node.Zone, useZoneCulStr, balancer.NodeName).Observe(zoneWeight)
+		balancer_common.IpWeightHistogramVec.WithLabelValues(node.Address, balancer.NodeName).Observe(serviceWeight)
+		balancer_common.CulWeightHistogramVec.WithLabelValues(node.Address, node.Address, useZoneCulStr, balancer.NodeName).Observe(weight)
 		//add node
 		for i := 0; i < culWeight; i++ {
 			weights = append(weights, node)

@@ -19,14 +19,14 @@ type BalancerSelector struct {
 	balancer     Balancer
 }
 
-func NewBalancer(balancerType int, zoneName string) (Balancer, error) {
+func NewBalancer(balancerType int, zoneName string, discoverNode string) (Balancer, error) {
 	switch balancerType {
 	case balancer_common.RoundRobin, balancer_common.ConsistentHash:
 		return nil, errors.New("no support")
 	case balancer_common.RandomSelect:
-		return NewRandomBalancer(zoneName), nil
+		return NewRandomBalancer(zoneName, discoverNode), nil
 	case balancer_common.WeightedRoundRobin:
-		return NewWeightedRoundRobin(zoneName), nil
+		return NewWeightedRoundRobin(zoneName, discoverNode), nil
 	default:
 		return nil, errors.New("undefine balance type")
 	}

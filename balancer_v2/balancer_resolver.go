@@ -13,6 +13,9 @@ type BalancerResolver struct {
 	discover discover.Discover //service discover
 	balancer balancer.Balancer //balancer
 
+	discoverNode string
+	localZone    string
+
 	zoneAdjuster    *weight_cal.WeightAdjuster
 	serviceAdjuster *weight_cal.WeightAdjuster
 }
@@ -22,10 +25,12 @@ func NewBalancerResolver(balancerType, discoverType int, zoneName string,
 	//create resolver
 	resolver := &BalancerResolver{}
 	//create balancer
-	balancer, err := balancer.NewBalancer(balancerType, zoneName)
+	balancer, err := balancer.NewBalancer(balancerType, zoneName, discoverNode)
 	if err != nil {
 		return nil, err
 	}
+	resolver.discoverNode = discoverNode
+	resolver.localZone = zoneName
 	resolver.balancer = balancer
 	//create zone && service adjuster
 	resolver.zoneAdjuster = weight_cal.NewWeightAdjuster()
@@ -64,5 +69,7 @@ func (resolver *BalancerResolver) GetNode() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	//add metrics
+	balancer_common.ZoneIpCallCounter.WithLabelValues(node.Zone, node.Address, resolver.discoverNode).Inc()
 	return node.Address, nil
 }
