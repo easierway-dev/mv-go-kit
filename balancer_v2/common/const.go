@@ -10,7 +10,8 @@ const (
 
 // discover type
 const (
-	ConsulDiscover = 1
+	TestingDiscover = 0
+	ConsulDiscover  = 1
 )
 
 //Event

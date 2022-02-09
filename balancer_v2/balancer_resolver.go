@@ -1,7 +1,6 @@
 package balancer_v2
 
 import (
-	"sync"
 	"time"
 
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/balancer"
@@ -16,18 +15,12 @@ type BalancerResolver struct {
 
 	zoneAdjuster    *weight_cal.WeightAdjuster
 	serviceAdjuster *weight_cal.WeightAdjuster
-
-	nodes      []*balancer_common.ServiceNode //Service Node
-	interval   time.Duration                  //Update Time
-	updateTime int64
-
-	mutex sync.Mutex
 }
 
 func NewBalancerResolver(balancerType, discoverType int, zoneName string,
 	address string, discoverNode string, interval time.Duration, logger balancer_common.Logger) (*BalancerResolver, error) {
 	//create resolver
-	resolver := &BalancerResolver{interval: interval}
+	resolver := &BalancerResolver{}
 	//create balancer
 	balancer, err := balancer.NewBalancer(balancerType, zoneName)
 	if err != nil {
@@ -43,8 +36,6 @@ func NewBalancerResolver(balancerType, discoverType int, zoneName string,
 		return nil, err
 	}
 	resolver.discover = discover
-	//start UpdateBalancerByTimer
-	resolver.UpdateBalancerByTimer(interval)
 	return resolver, nil
 }
 
@@ -57,26 +48,21 @@ func (resolver *BalancerResolver) Notify(address string, zone string, event int)
 	}
 }
 
-func (resolver *BalancerResolver) UpdateBalancerByTimer(interval time.Duration) {
-	go func() {
-		for range time.Tick(interval) {
-			resolver.UpdateServicesNotify(resolver.nodes)
-		}
-	}()
-}
-
 func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
-	//lock
-	resolver.mutex.Lock()
-	defer resolver.mutex.Unlock()
-	//updateTime
-	now := time.Now().Unix()
-	if now-resolver.updateTime < int64(resolver.interval) {
-		return
-	}
-	resolver.updateTime = now
 	//update weight_cal
 	if resolver.balancer != nil {
 		resolver.balancer.UpdateServices(nodes, resolver.zoneAdjuster, resolver.serviceAdjuster)
 	}
+}
+
+func (resolver *BalancerResolver) DiscoverNode() (*balancer_common.ServiceNode, error) {
+	return resolver.balancer.DiscoverNode()
+}
+
+func (resolver *BalancerResolver) GetNode() (string, error) {
+	node, err := resolver.DiscoverNode()
+	if err != nil {
+		return "", err
+	}
+	return node.Address, nil
 }

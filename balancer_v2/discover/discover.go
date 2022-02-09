@@ -24,6 +24,12 @@ func NewDiscover(discoverType int, address string, discoverNode string,
 			return nil, err
 		}
 		return discover, nil
+	case balancer_common.TestingDiscover:
+		discover, err := NewTestingDiscover(interval, notify, logger)
+		if err != nil {
+			return nil, err
+		}
+		return discover, err
 	default:
 		return nil, errors.New("undefine discover type")
 	}

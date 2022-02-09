@@ -48,6 +48,11 @@ func NewConsulDiscover(address string, discoverNode string,
 	return discover, nil
 }
 
+//Update Notify
+func (discover *ConsulDiscover) UpdateNotify(notify DiscoverNotify) {
+	discover.notify = notify
+}
+
 //Start timer
 func (discover *ConsulDiscover) Start() error {
 	if err := discover.updateService(); err != nil {
@@ -77,6 +82,11 @@ func (discover *ConsulDiscover) updateService() error {
 		return fmt.Errorf("error retrieving instances from Consul: %v", err)
 	}
 	discover.lastIndex = metainfo.LastIndex
+	discover.UpdateNodes(services)
+	return nil
+}
+
+func (discover *ConsulDiscover) UpdateNodes(services []*api.ServiceEntry) {
 	//get nodes
 	nodes := make([]*balancer_common.ServiceNode, 0, len(services))
 	for _, service := range services {
@@ -84,13 +94,13 @@ func (discover *ConsulDiscover) updateService() error {
 			continue
 		}
 		zone := "empty"
-		if zoneStr, ok := service.Service.Meta["zone_v2"]; ok {
+		if zoneStr, ok := service.Service.Meta["__zone_id"]; ok {
 			zone = zoneStr
 		}
 		weight := 100
-		if weightStr, ok := service.Service.Meta["weight"]; ok {
+		if weightStr, ok := service.Service.Meta["__weight"]; ok {
 			weightInt, err := strconv.Atoi(weightStr)
-			if err != nil && weightInt > 0 {
+			if err == nil && weightInt > 0 {
 				weight = weightInt
 			}
 		}
@@ -108,7 +118,6 @@ func (discover *ConsulDiscover) updateService() error {
 	if discover.notify != nil {
 		discover.notify.UpdateServicesNotify(nodes)
 	}
-	return nil
 }
 
 func (discover *ConsulDiscover) Stop() {

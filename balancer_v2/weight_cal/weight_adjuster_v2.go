@@ -35,7 +35,9 @@ func (adjuster *WeightAdjuster) Notify(key string, event int) {
 	adjuster.mutex.RLock()
 	counter, ok := adjuster.counters[key]
 	adjuster.mutex.RUnlock()
-	if !ok {
+
+	MaxTime := int64(60)
+	if !ok || (now-counter.Timestamp > MaxTime) {
 		counter = &Counter{
 			Timestamp: now,
 			Vt:        1.0, // init vt-1=1.0
@@ -46,8 +48,13 @@ func (adjuster *WeightAdjuster) Notify(key string, event int) {
 	}
 	//EWMA:vt=βvt−1+(1−β)θt, β = 0.9
 	beta := 0.9
-	if counter.Timestamp != now {
-		Vt := beta*counter.Vt + (1-beta)*(float64(counter.SuccessCount)/float64(counter.TotalCount))
+	gama := 1 - beta
+	timeGap := int(now - counter.Timestamp)
+	if timeGap > 0 {
+		Vt := 0.0
+		for i := 0; i < timeGap; i++ {
+			Vt = beta*counter.Vt + gama*(float64(counter.SuccessCount)/float64(counter.TotalCount))
+		}
 		counter = &Counter{
 			Timestamp: now,
 			Vt:        Vt,
