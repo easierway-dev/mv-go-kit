@@ -54,9 +54,30 @@ func (resolver *BalancerResolver) Notify(address string, zone string, event int)
 }
 
 func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
+	//open zone cul
+	useZoneCul := CheckOpenZoneWeight(nodes, resolver.localZone)
+	useZoneCulStr := "0"
+	if useZoneCul {
+		useZoneCulStr = "1"
+	}
+	//cal CurWeight
+	for _, node := range nodes {
+		//cul zone Weight
+		serviceWeight := weight_cal.GetServiceWeight(resolver.serviceAdjuster, node.Address)
+		weight := float64(node.Weight) * serviceWeight
+		zoneWeight := weight_cal.GetZoneWeight(resolver.zoneAdjuster, resolver.localZone, node.Zone)
+		if useZoneCul {
+			weight *= zoneWeight
+		}
+		node.CurWeight = int(weight)
+		//add metrics
+		balancer_common.ZoneWeightHistogramVec.WithLabelValues(node.Zone, useZoneCulStr, resolver.discoverNode).Observe(zoneWeight)
+		balancer_common.IpWeightHistogramVec.WithLabelValues(node.Address, resolver.discoverNode).Observe(serviceWeight)
+		balancer_common.CulWeightHistogramVec.WithLabelValues(node.Address, node.Address, useZoneCulStr, resolver.discoverNode).Observe(weight)
+	}
 	//update weight_cal
 	if resolver.balancer != nil {
-		resolver.balancer.UpdateServices(nodes, resolver.zoneAdjuster, resolver.serviceAdjuster)
+		resolver.balancer.UpdateServices(nodes)
 	}
 }
 
@@ -72,4 +93,23 @@ func (resolver *BalancerResolver) GetNode() (string, error) {
 	//add metrics
 	balancer_common.ZoneIpCallCounter.WithLabelValues(node.Zone, node.Address, resolver.discoverNode).Inc()
 	return node.Address, nil
+}
+
+func CheckOpenZoneWeight(nodes []*balancer_common.ServiceNode, localZoneName string) bool {
+	localZoneNum := 0
+	otherZoneNum := 0
+	if len(localZoneName) != 0 {
+		for _, node := range nodes {
+			if localZoneName == node.Zone {
+				localZoneNum += 1
+			} else {
+				otherZoneNum += 1
+			}
+		}
+	}
+	if localZoneNum > 0 && otherZoneNum > 0 {
+		return true
+	} else {
+		return false
+	}
 }

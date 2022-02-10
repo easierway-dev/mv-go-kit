@@ -19,7 +19,12 @@ func RandomNotify(size int, serviceName string, zoneName string, successRatio fl
 	serviceAdjuster *weight_cal.WeightAdjuster, zoneAdjuster *weight_cal.WeightAdjuster) {
 	for i := 0; i < size; i++ {
 		go func() {
+			count := 0
 			for range time.Tick(interval) {
+				count += 1
+				if count > 2000 && successRatio < 0.5 {
+					successRatio = 0.99
+				}
 				if rand.Float64() <= successRatio {
 					serviceAdjuster.Notify(serviceName, balancer_common.Success)
 					zoneAdjuster.Notify(zoneName, balancer_common.Success)
@@ -77,9 +82,18 @@ type BalancerAdapter struct {
 }
 
 func (resolver *BalancerAdapter) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
+	//cal CurWeight
+	for _, node := range nodes {
+		//cul zone Weight
+		serviceWeight := weight_cal.GetServiceWeight(resolver.serviceAdjuster, node.Address)
+		weight := float64(node.Weight) * serviceWeight
+		zoneWeight := weight_cal.GetZoneWeight(resolver.zoneAdjuster, "local_zone", node.Zone)
+		weight *= zoneWeight
+		node.CurWeight = int(weight)
+	}
 	//update weight_cal
 	if resolver.balancer != nil {
-		resolver.balancer.UpdateServices(nodes, resolver.zoneAdjuster, resolver.serviceAdjuster)
+		resolver.balancer.UpdateServices(nodes)
 	}
 }
 
@@ -113,12 +127,12 @@ func Test_WeightedRobinBalancer(t *testing.T) {
 		//fmt.Println("nodes:", balancer.Weights)
 		//return
 		go func() {
-			for range time.Tick(time.Duration(5) * time.Second) {
+			for range time.Tick(time.Duration(1) * time.Second) {
 				discover.UpdateNodes(entrys)
 			}
 		}()
 
-		for j := 1; j <= 5; j++ {
+		for j := 1; j <= 10; j++ {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 5000; i++ {
@@ -177,7 +191,7 @@ func Test_RamdomBalancer(t *testing.T) {
 			}
 		}()
 
-		for j := 1; j <= 5; j++ {
+		for j := 1; j <= 10; j++ {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 5000; i++ {

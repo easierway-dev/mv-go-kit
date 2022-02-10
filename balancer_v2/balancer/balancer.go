@@ -4,13 +4,12 @@ import (
 	"errors"
 
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
-	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/weight_cal"
 )
 
 // Balancer interface
 type Balancer interface {
 	DiscoverNode() (*balancer_common.ServiceNode, error)
-	UpdateServices(nodes []*balancer_common.ServiceNode, zoneAdjuster, serviceAdjuster *weight_cal.WeightAdjuster) error
+	UpdateServices(nodes []*balancer_common.ServiceNode) error
 }
 
 // BalancerSelector

@@ -7,4 +7,7 @@ type ServiceNode struct {
 	Port    int
 	Zone    string
 	Weight  int
+
+	//Cur Weight
+	CurWeight int
 }

@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
-	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/weight_cal"
 )
 
 //struct RandomBalancer
@@ -28,30 +27,12 @@ func NewRandomBalancer(localZoneName string, discoverNode string) Balancer {
 	}
 }
 
-func (balancer *RandomBalancer) UpdateServices(nodes []*balancer_common.ServiceNode, zoneAdjuster, serviceAdjuster *weight_cal.WeightAdjuster) error {
+func (balancer *RandomBalancer) UpdateServices(nodes []*balancer_common.ServiceNode) error {
 	factors := make([]int, 0, len(nodes))
-	//open zone cul
-	useZoneCul := CheckOpenZoneWeight(nodes, balancer.LocalZoneName)
-	useZoneCulStr := "0"
-	if useZoneCul {
-		useZoneCulStr = "1"
-	}
 	//cul Weight
 	maxFactors := 0
 	for _, node := range nodes {
-		//cul zone Weight
-		serviceWeight := weight_cal.GetServiceWeight(serviceAdjuster, node.Address)
-		weight := float64(node.Weight) * serviceWeight
-		zoneWeight := weight_cal.GetZoneWeight(zoneAdjuster, balancer.LocalZoneName, node.Zone)
-		if useZoneCul {
-			weight *= zoneWeight
-		}
-		culWeight := int(weight)
-		maxFactors += culWeight
-		//add metrics
-		balancer_common.ZoneWeightHistogramVec.WithLabelValues(node.Zone, useZoneCulStr, balancer.NodeName).Observe(zoneWeight)
-		balancer_common.IpWeightHistogramVec.WithLabelValues(node.Address, balancer.NodeName).Observe(serviceWeight)
-		balancer_common.CulWeightHistogramVec.WithLabelValues(node.Address, node.Address, useZoneCulStr, balancer.NodeName).Observe(weight)
+		maxFactors += node.CurWeight
 		//set nodes
 		factors = append(factors, maxFactors)
 	}

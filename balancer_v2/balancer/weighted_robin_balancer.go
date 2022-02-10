@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
-	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/weight_cal"
 )
 
 type WeightedRoundRobinBalancer struct {
@@ -24,31 +23,14 @@ func NewWeightedRoundRobin(localZoneName string, discoverNode string) Balancer {
 	}
 }
 
-func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_common.ServiceNode,
-	zoneAdjuster, serviceAdjuster *weight_cal.WeightAdjuster) error {
-	weights := make([]*balancer_common.ServiceNode, 0, len(nodes))
-	//open zone cul
-	useZoneCul := CheckOpenZoneWeight(nodes, balancer.LocalZoneName)
-	useZoneCulStr := "0"
-	if useZoneCul {
-		useZoneCulStr = "1"
-	}
+func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_common.ServiceNode) error {
+	weights := make([]*balancer_common.ServiceNode, 0, len(nodes)*50)
 	//cul weight
 	for _, node := range nodes {
 		//cul zone Weight
-		serviceWeight := weight_cal.GetServiceWeight(serviceAdjuster, node.Address)
-		weight := float64(node.Weight) * serviceWeight
-		zoneWeight := weight_cal.GetZoneWeight(zoneAdjuster, balancer.LocalZoneName, node.Zone)
-		if useZoneCul {
-			weight *= zoneWeight
-		}
-		culWeight := int(weight)
-		//add metrics
-		balancer_common.ZoneWeightHistogramVec.WithLabelValues(node.Zone, useZoneCulStr, balancer.NodeName).Observe(zoneWeight)
-		balancer_common.IpWeightHistogramVec.WithLabelValues(node.Address, balancer.NodeName).Observe(serviceWeight)
-		balancer_common.CulWeightHistogramVec.WithLabelValues(node.Address, node.Address, useZoneCulStr, balancer.NodeName).Observe(weight)
+		curWeight := node.CurWeight
 		//add node
-		for i := 0; i < culWeight; i++ {
+		for i := 0; i < curWeight; i++ {
 			weights = append(weights, node)
 		}
 	}
