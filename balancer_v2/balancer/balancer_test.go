@@ -156,6 +156,23 @@ func Test_WeightedRobinBalancer(t *testing.T) {
 	})
 }
 
+func Test_GCD(t *testing.T) {
+	Convey("Test_GCD", t, func() {
+		nodes := make([]*balancer_common.ServiceNode, 0, 100)
+		nodes = append(nodes, &balancer_common.ServiceNode{CurWeight: 100})
+		nodes = append(nodes, &balancer_common.ServiceNode{CurWeight: 98})
+		nodes = append(nodes, &balancer_common.ServiceNode{CurWeight: 96})
+		nodes = append(nodes, &balancer_common.ServiceNode{CurWeight: 94})
+		nodes = append(nodes, &balancer_common.ServiceNode{CurWeight: 92})
+		nodes = append(nodes, &balancer_common.ServiceNode{CurWeight: 0})
+		nodes = append(nodes, &balancer_common.ServiceNode{CurWeight: 2})
+
+		g := GetGcd(nodes)
+		fmt.Println("g:", g)
+		So(g, ShouldEqual, 2)
+	})
+}
+
 func Test_RamdomBalancer(t *testing.T) {
 	Convey("Test_RamdomBalancer", t, func() {
 		//new Adjuster

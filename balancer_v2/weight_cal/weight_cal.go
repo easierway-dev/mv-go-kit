@@ -2,7 +2,7 @@ package weight_cal
 
 func GetZoneWeight(zoneAdjuster *WeightAdjuster, localZone string, serviceZone string) float64 {
 	ratio := zoneAdjuster.GetWeight(localZone)
-	culRatio := GetRatioByStep(ratio, 0.05)
+	culRatio := GetRatioByStep(ratio, 0.04)
 	//cul zone weight
 	if localZone == serviceZone {
 		return culRatio

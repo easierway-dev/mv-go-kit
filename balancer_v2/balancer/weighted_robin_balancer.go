@@ -23,12 +23,48 @@ func NewWeightedRoundRobin(localZoneName string, discoverNode string) Balancer {
 	}
 }
 
+//辗转相除法求最大公约数
+func gcd(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
+}
+
+func GetGcd(nodes []*balancer_common.ServiceNode) int {
+	if len(nodes) == 0 {
+		return 0
+	}
+	g := nodes[0].CurWeight
+	for _, node := range nodes {
+		curWeight := node.CurWeight
+		if curWeight == 0 {
+			continue
+		}
+		//oldGcd := g
+		g = gcd(g, curWeight)
+	}
+	return g
+}
+
+func GetWeightCount(nodes []*balancer_common.ServiceNode) int {
+	count := 0
+	for _, node := range nodes {
+		count += node.CurWeight
+	}
+	return count
+}
+
 func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_common.ServiceNode) error {
-	weights := make([]*balancer_common.ServiceNode, 0, len(nodes)*50)
+	gcd := GetGcd(nodes)
+	weights := make([]*balancer_common.ServiceNode, 0, GetWeightCount(nodes))
 	//cul weight
 	for _, node := range nodes {
 		//cul zone Weight
 		curWeight := node.CurWeight
+		if gcd != 0 {
+			curWeight /= gcd
+		}
 		//add node
 		for i := 0; i < curWeight; i++ {
 			weights = append(weights, node)
