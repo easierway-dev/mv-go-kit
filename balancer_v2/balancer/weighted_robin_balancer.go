@@ -28,16 +28,10 @@ func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_com
 	zoneAdjuster, serviceAdjuster *weight_cal.WeightAdjuster) error {
 	weights := make([]*balancer_common.ServiceNode, 0, len(nodes))
 	//open zone cul
-	useZoneCul := false
+	useZoneCul := CheckOpenZoneWeight(nodes, balancer.LocalZoneName)
 	useZoneCulStr := "0"
-	if len(balancer.LocalZoneName) != 0 {
-		for _, node := range nodes {
-			if balancer.LocalZoneName == node.Zone {
-				useZoneCulStr = "1"
-				useZoneCul = true
-				break
-			}
-		}
+	if useZoneCul {
+		useZoneCulStr = "1"
 	}
 	//cul weight
 	for _, node := range nodes {

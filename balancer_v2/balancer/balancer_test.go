@@ -96,6 +96,7 @@ func Test_WeightedRobinBalancer(t *testing.T) {
 		//new balancer
 		balancer := &WeightedRoundRobinBalancer{
 			LocalZoneName: "local_zone",
+			NodeName:      "test_discover",
 		}
 		//new adapter
 		adapter := &BalancerAdapter{
@@ -113,6 +114,65 @@ func Test_WeightedRobinBalancer(t *testing.T) {
 		//return
 		go func() {
 			for range time.Tick(time.Duration(5) * time.Second) {
+				discover.UpdateNodes(entrys)
+			}
+		}()
+
+		for j := 1; j <= 5; j++ {
+			time.Sleep(time.Duration(1) * time.Second)
+			countMap := make(map[string]int)
+			for i := 0; i < 5000; i++ {
+				time.Sleep(time.Duration(1) * time.Millisecond)
+				node, err := balancer.DiscoverNode()
+				if err == nil {
+					countMap[node.Address] += 1
+				}
+			}
+			keys := []string{}
+			for k, _ := range countMap {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, key := range keys {
+				fmt.Println("second:", j, " ", key, ":", countMap[key])
+			}
+			fmt.Println("second end")
+			fmt.Println("")
+		}
+	})
+}
+
+func Test_RamdomBalancer(t *testing.T) {
+	Convey("Test_RamdomBalancer", t, func() {
+		//new Adjuster
+		serviceAdjuster := weight_cal.NewWeightAdjuster()
+		zoneAdjuster := weight_cal.NewWeightAdjuster()
+		RandomNotify(50, "192.168.1.1:10000", "local_zone", 0.99, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
+		RandomNotify(50, "192.168.1.2:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
+		RandomNotify(50, "192.168.1.3:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
+		RandomNotify(50, "10.0.0.1:10000", "other_zone1", 0.99, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
+		RandomNotify(50, "10.0.2.3:10000", "other_zone2", 0.98, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
+		//new balancer
+		balancer := &RandomBalancer{
+			LocalZoneName: "local_zone",
+			NodeName:      "test_node",
+		}
+		//new adapter
+		adapter := &BalancerAdapter{
+			balancer:        balancer,
+			zoneAdjuster:    zoneAdjuster,
+			serviceAdjuster: serviceAdjuster,
+		}
+		//new discover
+		discover := &discover.ConsulDiscover{}
+		discover.UpdateNotify(adapter)
+
+		entrys := NewServiceNode()
+		discover.UpdateNodes(entrys)
+		//fmt.Println("nodes:", balancer.Weights)
+		//return
+		go func() {
+			for range time.Tick(time.Duration(1) * time.Second) {
 				discover.UpdateNodes(entrys)
 			}
 		}()
