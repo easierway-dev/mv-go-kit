@@ -52,8 +52,19 @@ func (adjuster *WeightAdjuster) Notify(key string, event int) {
 	timeGap := int(now - counter.Timestamp)
 	if timeGap > 0 {
 		Vt := 0.0
-		for i := 0; i < timeGap; i++ {
-			Vt = beta*counter.Vt + gama*(float64(counter.SuccessCount)/float64(counter.TotalCount))
+		/*for i := 0; i < timeGap-1; i++ {
+			Vt = beta*counter.Vt + gama*(1)
+		}*/
+		totalCount := counter.TotalCount
+		successCount := counter.SuccessCount
+		if totalCount > 0 {
+			successRate := float64(successCount) / float64(totalCount)
+			if successRate >= 1.0 {
+				successRate = 1.0
+			}
+			Vt = beta*counter.Vt + gama*(successRate)
+		} else {
+			Vt = beta*counter.Vt + gama*(1.0)
 		}
 		counter = &Counter{
 			Timestamp: now,

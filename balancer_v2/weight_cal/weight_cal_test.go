@@ -74,8 +74,8 @@ func TestServiceWeightCul(t *testing.T) {
 			i += 1
 			ratio1 := adjuster.GetWeight(service1)
 			ratio2 := adjuster.GetWeight(service2)
-			fmt.Println("second:", i, "service1_real_ratio:", ratio1, " service1_cul_weight:", GetRatioByStep(ratio1))
-			fmt.Println("second:", i, "service2_real_ratio:", ratio2, " service2_cul_weight:", GetRatioByStep(ratio2))
+			fmt.Println("second:", i, "service1_real_ratio:", ratio1, " service1_cul_weight:", GetRatioByStep(ratio1, 0.05))
+			fmt.Println("second:", i, "service2_real_ratio:", ratio2, " service2_cul_weight:", GetRatioByStep(ratio2, 0.05))
 		}
 	})
 }

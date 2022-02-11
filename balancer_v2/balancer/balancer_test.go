@@ -90,6 +90,9 @@ func (resolver *BalancerAdapter) UpdateServicesNotify(nodes []*balancer_common.S
 		zoneWeight := weight_cal.GetZoneWeight(resolver.zoneAdjuster, "local_zone", node.Zone)
 		weight *= zoneWeight
 		node.CurWeight = int(weight)
+		if node.CurWeight == 0 && node.Zone == "local_zone" {
+			node.CurWeight = 1
+		}
 	}
 	//update weight_cal
 	if resolver.balancer != nil {

@@ -70,6 +70,10 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 			weight *= zoneWeight
 		}
 		node.CurWeight = int(weight)
+		//local zone min weight = 1
+		if node.CurWeight == 0 && node.Zone == resolver.localZone {
+			node.CurWeight = 1
+		}
 		//add metrics
 		balancer_common.ZoneWeightHistogramVec.WithLabelValues(node.Zone, useZoneCulStr, resolver.discoverNode).Observe(zoneWeight)
 		balancer_common.IpWeightHistogramVec.WithLabelValues(node.Address, resolver.discoverNode).Observe(serviceWeight)
