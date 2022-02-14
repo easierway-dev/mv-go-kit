@@ -81,10 +81,11 @@ func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_com
 }
 
 func (balancer *WeightedRoundRobinBalancer) DiscoverNode() (*balancer_common.ServiceNode, error) {
-	size := int64(len(balancer.Weights))
+	weights := balancer.Weights
+	size := int64(len(weights))
 	if size == 0 {
 		return nil, errors.New("empty service nodes")
 	}
 	idx := int(atomic.AddInt64(&balancer.Count, 1) % size)
-	return balancer.Weights[idx], nil
+	return weights[idx], nil
 }
