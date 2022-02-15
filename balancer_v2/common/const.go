@@ -20,3 +20,8 @@ const (
 	Failed  = 2
 	Timeout = 3
 )
+
+//Const Time
+const (
+	MaxTimeGap = 60
+)

@@ -34,7 +34,9 @@ func NewBalancerResolver(balancerType, discoverType int, zoneName string,
 	resolver.balancer = balancer
 	//create zone && service adjuster
 	resolver.zoneAdjuster = weight_cal.NewWeightAdjuster()
+	resolver.zoneAdjuster.ClearEmptyCounter(time.Duration(2*60*60) * time.Second)
 	resolver.serviceAdjuster = weight_cal.NewWeightAdjuster()
+	resolver.serviceAdjuster.ClearEmptyCounter(time.Duration(2*60*60) * time.Second)
 	//create discover
 	discover, err := discover.NewDiscover(discoverType, address, discoverNode, interval, resolver, logger)
 	if err != nil {
