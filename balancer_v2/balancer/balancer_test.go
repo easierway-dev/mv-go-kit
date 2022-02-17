@@ -26,7 +26,7 @@ func RandomNotify(size int, serviceName string, zoneName string, successRatio fl
 				select {
 				case <-ticker.C:
 					count += 1
-					if count > 2000 && successRatio < 0.5 {
+					if count > 500 && successRatio < 0.5 {
 						successRatio = 0.99
 					}
 					if rand.Float64() <= successRatio {
@@ -143,7 +143,7 @@ func Test_WeightedRobinBalancer(t *testing.T) {
 			}
 		}()
 
-		for j := 1; j <= 10; j++ {
+		for j := 1; j <= 20; j++ {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 5000; i++ {
@@ -226,13 +226,14 @@ func Test_RamdomBalancer(t *testing.T) {
 		for j := 1; j <= 10; j++ {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
-			for i := 0; i < 5000; i++ {
+			for i := 0; i < 2000; i++ {
 				//time.Sleep(time.Duration(1) * time.Millisecond)
 				node, err := balancer.DiscoverNode()
 				if err == nil {
 					countMap[node.Address] += 1
 				}
 			}
+			fmt.Println("serviceName:192.168.1.2:10000 weight:", serviceAdjuster.GetWeight("192.168.1.2:10000"))
 			keys := []string{}
 			for k, _ := range countMap {
 				keys = append(keys, k)
