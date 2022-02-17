@@ -73,8 +73,13 @@ func (discover *TestingDiscover) Start() error {
 	go func() {
 		entrys := NewTestServiceNode()
 		discover.UpdateNodes(entrys)
-		for range time.Tick(discover.interval) {
-			discover.UpdateNodes(entrys)
+		for {
+			ticker := time.NewTicker(discover.interval)
+			defer ticker.Stop()
+			select {
+			case <-ticker.C:
+				discover.UpdateNodes(entrys)
+			}
 		}
 	}()
 	return nil

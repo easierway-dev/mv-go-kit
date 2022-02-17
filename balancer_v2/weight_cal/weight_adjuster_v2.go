@@ -31,13 +31,18 @@ func NewWeightAdjuster() *WeightAdjuster {
 
 func (adjuster *WeightAdjuster) ClearEmptyCounter(interval time.Duration) {
 	go func() {
-		for range time.Tick(interval) {
-			adjuster.mutex.Lock()
-			defer adjuster.mutex.Unlock()
-			for key, counter := range adjuster.counters {
-				now := time.Now().Unix()
-				if now-counter.Timestamp > balancer_common.MaxTimeGap {
-					delete(adjuster.counters, key)
+		for {
+			ticker := time.NewTicker(interval)
+			defer ticker.Stop()
+			select {
+			case <-ticker.C:
+				adjuster.mutex.Lock()
+				defer adjuster.mutex.Unlock()
+				for key, counter := range adjuster.counters {
+					now := time.Now().Unix()
+					if now-counter.Timestamp > balancer_common.MaxTimeGap {
+						delete(adjuster.counters, key)
+					}
 				}
 			}
 		}

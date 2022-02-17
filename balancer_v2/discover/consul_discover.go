@@ -59,12 +59,17 @@ func (discover *ConsulDiscover) Start() error {
 		return err
 	}
 	go func() {
-		for range time.Tick(discover.interval) {
+		ticker := time.NewTicker(discover.interval)
+		defer ticker.Stop()
+		for {
 			if discover.stop {
 				break
 			}
-			if err := discover.updateService(); err != nil && discover.logger != nil {
-				discover.logger.Warnf("update service zone failed. err: [%v]", err)
+			select {
+			case <-ticker.C:
+				if err := discover.updateService(); err != nil && discover.logger != nil {
+					discover.logger.Warnf("update service zone failed. err: [%v]", err)
+				}
 			}
 		}
 	}()

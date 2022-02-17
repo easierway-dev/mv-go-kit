@@ -74,8 +74,13 @@ func Test_ConsulDiscover(t *testing.T) {
 		}
 		entrys := NewServiceNode()
 		go func() {
-			for range time.Tick(time.Duration(2) * time.Second) {
-				discover.UpdateNodes(entrys)
+			ticker := time.NewTicker(time.Duration(2) * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					discover.UpdateNodes(entrys)
+				}
 			}
 		}()
 		time.Sleep(time.Duration(10) * time.Second)

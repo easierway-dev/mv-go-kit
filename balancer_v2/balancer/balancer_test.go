@@ -20,17 +20,22 @@ func RandomNotify(size int, serviceName string, zoneName string, successRatio fl
 	for i := 0; i < size; i++ {
 		go func() {
 			count := 0
-			for range time.Tick(interval) {
-				count += 1
-				if count > 2000 && successRatio < 0.5 {
-					successRatio = 0.99
-				}
-				if rand.Float64() <= successRatio {
-					serviceAdjuster.Notify(serviceName, balancer_common.Success)
-					zoneAdjuster.Notify(zoneName, balancer_common.Success)
-				} else {
-					serviceAdjuster.Notify(serviceName, balancer_common.Failed)
-					zoneAdjuster.Notify(zoneName, balancer_common.Failed)
+			ticker := time.NewTicker(interval)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					count += 1
+					if count > 2000 && successRatio < 0.5 {
+						successRatio = 0.99
+					}
+					if rand.Float64() <= successRatio {
+						serviceAdjuster.Notify(serviceName, balancer_common.Success)
+						zoneAdjuster.Notify(zoneName, balancer_common.Success)
+					} else {
+						serviceAdjuster.Notify(serviceName, balancer_common.Failed)
+						zoneAdjuster.Notify(zoneName, balancer_common.Failed)
+					}
 				}
 			}
 		}()
@@ -127,11 +132,14 @@ func Test_WeightedRobinBalancer(t *testing.T) {
 
 		entrys := NewServiceNode()
 		discover.UpdateNodes(entrys)
-		//fmt.Println("nodes:", balancer.Weights)
-		//return
 		go func() {
-			for range time.Tick(time.Duration(1) * time.Second) {
-				discover.UpdateNodes(entrys)
+			ticker := time.NewTicker(time.Duration(1) * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					discover.UpdateNodes(entrys)
+				}
 			}
 		}()
 
@@ -139,7 +147,6 @@ func Test_WeightedRobinBalancer(t *testing.T) {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 5000; i++ {
-				time.Sleep(time.Duration(1) * time.Millisecond)
 				node, err := balancer.DiscoverNode()
 				if err == nil {
 					countMap[node.Address] += 1
@@ -206,8 +213,13 @@ func Test_RamdomBalancer(t *testing.T) {
 		//fmt.Println("nodes:", balancer.Weights)
 		//return
 		go func() {
-			for range time.Tick(time.Duration(1) * time.Second) {
-				discover.UpdateNodes(entrys)
+			ticker := time.NewTicker(time.Duration(1) * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					discover.UpdateNodes(entrys)
+				}
 			}
 		}()
 
@@ -215,7 +227,7 @@ func Test_RamdomBalancer(t *testing.T) {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 5000; i++ {
-				time.Sleep(time.Duration(1) * time.Millisecond)
+				//time.Sleep(time.Duration(1) * time.Millisecond)
 				node, err := balancer.DiscoverNode()
 				if err == nil {
 					countMap[node.Address] += 1

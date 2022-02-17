@@ -21,11 +21,16 @@ func (logger *MyLogger) Warnf(format string, v ...interface{}) {}
 func RandomNotify(size int, serviceName string, zoneName string, successRatio float64, interval time.Duration, resolver *BalancerResolver) {
 	for i := 0; i < size; i++ {
 		go func() {
-			for range time.Tick(interval) {
-				if rand.Float64() <= successRatio {
-					resolver.Notify(serviceName, zoneName, balancer_common.Success)
-				} else {
-					resolver.Notify(serviceName, zoneName, balancer_common.Failed)
+			ticker := time.NewTicker(interval)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					if rand.Float64() <= successRatio {
+						resolver.Notify(serviceName, zoneName, balancer_common.Success)
+					} else {
+						resolver.Notify(serviceName, zoneName, balancer_common.Failed)
+					}
 				}
 			}
 		}()
@@ -50,9 +55,9 @@ func Test_BalancerResolver(t *testing.T) {
 		RandomNotify(50, "10.0.2.3:10000", "other_zone2", 0.98, time.Duration(10)*time.Millisecond, resolver)
 		//discover node
 		for j := 1; j <= 10; j++ {
-			time.Sleep(time.Duration(3) * time.Second)
+			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
-			for i := 0; i < 2000; i++ {
+			for i := 0; i < 5000; i++ {
 				node, err := resolver.DiscoverNode()
 				if err == nil {
 					countMap[node.Address] += 1
