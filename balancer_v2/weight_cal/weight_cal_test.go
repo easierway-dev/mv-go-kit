@@ -142,3 +142,24 @@ func TestZoneWeightCul(t *testing.T) {
 		}
 	})
 }
+
+func TestClearEmptyCounter(t *testing.T) {
+	Convey("TestClearEmptyCounter", t, func() {
+		adjuster := NewWeightAdjuster()
+
+		service1 := "1.1.1.1:1010"
+		service2 := "2.2.2.2:9090"
+		RandomNotify(50, service1, 0.87, time.Duration(10)*time.Millisecond, adjuster)
+		adjuster.Notify(service2, balancer_common.Success)
+		adjuster.ClearEmptyCounter(time.Duration(balancer_common.MaxTimeGap+1) * time.Second)
+		for _, counter := range adjuster.counters {
+			fmt.Println(*counter)
+		}
+
+		time.Sleep(time.Duration(balancer_common.MaxTimeGap+2) * time.Second)
+		for _, counter := range adjuster.counters {
+			fmt.Println(*counter)
+		}
+		So(len(adjuster.counters), ShouldEqual, 1)
+	})
+}
