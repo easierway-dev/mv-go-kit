@@ -55,6 +55,7 @@ func (balancer *RandomBalancer) DiscoverNode() (*balancer_common.ServiceNode, er
 	factors := balancer.Factors
 	nodes := balancer.Weights
 	balancer.rwMutex.RUnlock()
+	//get idx
 	idx := sort.SearchInts(factors, rand.Intn(maxFactors))
 	return nodes[idx], nil
 }

@@ -73,9 +73,9 @@ func (discover *TestingDiscover) Start() error {
 	go func() {
 		entrys := NewTestServiceNode()
 		discover.UpdateNodes(entrys)
+		ticker := time.NewTicker(discover.interval)
+		defer ticker.Stop()
 		for {
-			ticker := time.NewTicker(discover.interval)
-			defer ticker.Stop()
 			select {
 			case <-ticker.C:
 				discover.UpdateNodes(entrys)

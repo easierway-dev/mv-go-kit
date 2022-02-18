@@ -37,13 +37,13 @@ func (adjuster *WeightAdjuster) ClearEmptyCounter(interval time.Duration) {
 			select {
 			case <-ticker.C:
 				adjuster.mutex.Lock()
-				defer adjuster.mutex.Unlock()
 				now := time.Now().Unix()
 				for key, counter := range adjuster.counters {
 					if now-counter.Timestamp > balancer_common.MaxTimeGap {
 						delete(adjuster.counters, key)
 					}
 				}
+				adjuster.mutex.Unlock()
 			}
 		}
 	}()
@@ -104,8 +104,8 @@ func (adjuster *WeightAdjuster) Notify(key string, event int) {
 			Vt:        hslam_automic.NewFloat64(1.0), // init vt-1=1.0
 		}
 		adjuster.mutex.Lock()
-		defer adjuster.mutex.Unlock()
 		adjuster.counters[key] = counter
+		adjuster.mutex.Unlock()
 	}
 	//cal EWMA
 	if !firstCreate {
