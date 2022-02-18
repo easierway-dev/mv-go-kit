@@ -32,9 +32,6 @@ func (balancer *RandomBalancer) UpdateServices(nodes []*balancer_common.ServiceN
 	//cul Weight
 	maxFactors := 0
 	for _, node := range nodes {
-		if node.CurWeight == 0 {
-			continue
-		}
 		maxFactors += node.CurWeight
 		//set nodes
 		factors = append(factors, maxFactors)
