@@ -47,17 +47,21 @@ func GetGcd(nodes []*balancer_common.ServiceNode) int {
 	return g
 }
 
-func GetWeightCount(nodes []*balancer_common.ServiceNode) int {
+func GetWeightCount(nodes []*balancer_common.ServiceNode, gcd int) int {
 	count := 0
 	for _, node := range nodes {
-		count += node.CurWeight
+		curWeight := node.CurWeight
+		if gcd != 0 {
+			curWeight /= gcd
+		}
+		count += curWeight
 	}
 	return count
 }
 
 func (balancer *WeightedRoundRobinBalancer) UpdateServices(nodes []*balancer_common.ServiceNode) error {
 	gcd := GetGcd(nodes)
-	weights := make([]*balancer_common.ServiceNode, 0, GetWeightCount(nodes))
+	weights := make([]*balancer_common.ServiceNode, 0, GetWeightCount(nodes, gcd))
 	//cul weight
 	for _, node := range nodes {
 		//cul zone Weight
