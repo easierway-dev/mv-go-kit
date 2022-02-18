@@ -89,13 +89,13 @@ func (adjuster *WeightAdjuster) CalEWMA(now int64, counter *Counter) {
 }
 
 func (adjuster *WeightAdjuster) Notify(key string, event int) {
-	//init member
-	now := time.Now().Unix()
 	//check filed
 	adjuster.mutex.RLock()
 	counter, ok := adjuster.counters[key]
 	adjuster.mutex.RUnlock()
 
+	//init member
+	now := time.Now().Unix()
 	firstCreate := false
 	if !ok || (now-counter.Timestamp > balancer_common.MaxTimeGap) {
 		firstCreate = true
