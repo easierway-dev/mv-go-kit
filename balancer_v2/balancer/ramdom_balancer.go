@@ -40,15 +40,15 @@ func (balancer *RandomBalancer) UpdateServices(nodes []*balancer_common.ServiceN
 		factors = append(factors, maxFactors)
 	}
 	balancer.rwMutex.Lock()
+	defer balancer.rwMutex.Unlock()
 	balancer.MaxFactors = maxFactors
 	balancer.Factors = factors
 	balancer.Weights = nodes
-	balancer.rwMutex.Unlock()
 	return nil
 }
 
 func (balancer *RandomBalancer) DiscoverNode() (*balancer_common.ServiceNode, error) {
-	size := int64(len(balancer.Weights))
+	size := int64(len(balancer.Factors))
 	if size == 0 {
 		return nil, errors.New("empty service nodes")
 	}
