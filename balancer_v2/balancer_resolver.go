@@ -88,7 +88,13 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 }
 
 func (resolver *BalancerResolver) DiscoverNode() (*balancer_common.ServiceNode, error) {
-	return resolver.balancer.DiscoverNode()
+	node, err := resolver.balancer.DiscoverNode()
+	if err != nil {
+		return nil, err
+	}
+	//add metrics
+	balancer_common.ZoneIpCallCounter.WithLabelValues(node.Zone, node.Address, resolver.discoverNode).Inc()
+	return node, nil
 }
 
 func (resolver *BalancerResolver) GetNode() (string, error) {
@@ -96,8 +102,6 @@ func (resolver *BalancerResolver) GetNode() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//add metrics
-	balancer_common.ZoneIpCallCounter.WithLabelValues(node.Zone, node.Address, resolver.discoverNode).Inc()
 	return node.Address, nil
 }
 
