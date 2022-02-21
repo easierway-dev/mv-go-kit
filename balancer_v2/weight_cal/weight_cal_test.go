@@ -44,8 +44,8 @@ func RunAdjustGetWeight(adjuster *WeightAdjuster, service string) {
 }
 
 func TestGetWeightAdjuster(t *testing.T) {
-	Convey("GetWeightAdjusterTest", t, func() {
-		adjuster := NewWeightAdjuster()
+	Convey("TestGetWeightAdjuster", t, func() {
+		adjuster := NewWeightAdjuster(0.9)
 
 		service1 := "1.1.1.1:1010"
 		service2 := "2.2.2.2:9090"
@@ -55,7 +55,7 @@ func TestGetWeightAdjuster(t *testing.T) {
 		i := 0
 		fmt.Println("start TestGetWeightAdjuster")
 		for {
-			stop := false
+			stop = false
 			select {
 			case <-time.Tick(time.Duration(2) * time.Second):
 				fmt.Println("start range sec:", i)
@@ -78,7 +78,7 @@ func TestGetWeightAdjuster(t *testing.T) {
 
 func TestServiceWeightCul(t *testing.T) {
 	Convey("TestServiceWeightCul", t, func() {
-		adjuster := NewWeightAdjuster()
+		adjuster := NewWeightAdjuster(0.9)
 
 		service1 := "1.1.1.1:1010"
 		service2 := "2.2.2.2:9090"
@@ -116,7 +116,7 @@ func TestServiceWeightCul(t *testing.T) {
 
 func TestZoneWeightCul(t *testing.T) {
 	Convey("TestZoneWeightCul", t, func() {
-		adjuster := NewWeightAdjuster()
+		adjuster := NewWeightAdjuster(0.9)
 
 		localZone := "us-aws-vg-1"
 		otherZone := "us-aws-vg-2"
@@ -133,8 +133,8 @@ func TestZoneWeightCul(t *testing.T) {
 					stop = true
 				}
 				i += 1
-				fmt.Println("second:", i, " localZone_cul_weight:", GetZoneWeight(adjuster, localZone, localZone))
-				fmt.Println("second:", i, " otherZone_cul_weight:", GetZoneWeight(adjuster, localZone, otherZone))
+				fmt.Println("second:", i, " localZone_cul_weight:", GetZoneWeight(adjuster, localZone, localZone, 0.05))
+				fmt.Println("second:", i, " otherZone_cul_weight:", GetZoneWeight(adjuster, localZone, otherZone, 0.05))
 			}
 			if stop {
 				break
@@ -145,8 +145,9 @@ func TestZoneWeightCul(t *testing.T) {
 
 func TestClearEmptyCounter(t *testing.T) {
 	Convey("TestClearEmptyCounter", t, func() {
-		adjuster := NewWeightAdjuster()
+		adjuster := NewWeightAdjuster(0.9)
 
+		stop = false
 		service1 := "1.1.1.1:1010"
 		service2 := "2.2.2.2:9090"
 		RandomNotify(50, service1, 0.87, time.Duration(10)*time.Millisecond, adjuster)

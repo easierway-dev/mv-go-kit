@@ -12,6 +12,7 @@ import (
 type WeightAdjuster struct {
 	counters map[string]*Counter
 	mutex    sync.RWMutex
+	beta     float64
 }
 
 type Counter struct {
@@ -23,9 +24,13 @@ type Counter struct {
 	Timestamp int64
 }
 
-func NewWeightAdjuster() *WeightAdjuster {
+func NewWeightAdjuster(beta float64) *WeightAdjuster {
+	if beta < 0.5 || beta > 0.999 {
+		beta = 0.9
+	}
 	return &WeightAdjuster{
 		counters: make(map[string]*Counter),
+		beta:     beta,
 	}
 }
 
@@ -53,7 +58,7 @@ func (adjuster *WeightAdjuster) CalEWMA(now int64, counter *Counter) {
 	//EWMA:vt=βvt−1+(1−β)θt, β = 0.9
 	timeGap := int(now - counter.Timestamp)
 	if timeGap > 0 {
-		beta := 0.9
+		beta := adjuster.beta
 		gama := 1 - beta
 		Vt := 0.0
 		totalCount := counter.TotalCount

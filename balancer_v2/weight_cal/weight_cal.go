@@ -1,8 +1,8 @@
 package weight_cal
 
-func GetZoneWeight(zoneAdjuster *WeightAdjuster, localZone string, serviceZone string) float64 {
+func GetZoneWeight(zoneAdjuster *WeightAdjuster, localZone string, serviceZone string, step float64) float64 {
 	ratio := zoneAdjuster.GetWeight(localZone)
-	culRatio := GetRatioByStep(ratio, 0.05)
+	culRatio := GetRatioByStep(ratio, step)
 	//cul zone weight
 	if localZone == serviceZone {
 		return culRatio
@@ -11,9 +11,9 @@ func GetZoneWeight(zoneAdjuster *WeightAdjuster, localZone string, serviceZone s
 	}
 }
 
-func GetServiceWeight(serviceWeight *WeightAdjuster, serviceNode string) float64 {
+func GetServiceWeight(serviceWeight *WeightAdjuster, serviceNode string, step float64) float64 {
 	ratio := serviceWeight.GetWeight(serviceNode)
-	return GetRatioByStep(ratio, 0.02)
+	return GetRatioByStep(ratio, step)
 }
 
 func GetRatioByStep(ratio float64, step float64) float64 {

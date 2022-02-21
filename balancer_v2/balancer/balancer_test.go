@@ -90,9 +90,9 @@ func (resolver *BalancerAdapter) UpdateServicesNotify(nodes []*balancer_common.S
 	//cal CurWeight
 	for _, node := range nodes {
 		//cul zone Weight
-		serviceWeight := weight_cal.GetServiceWeight(resolver.serviceAdjuster, node.Address)
+		serviceWeight := weight_cal.GetServiceWeight(resolver.serviceAdjuster, node.Address, 0.02)
 		weight := float64(node.Weight) * serviceWeight
-		zoneWeight := weight_cal.GetZoneWeight(resolver.zoneAdjuster, "local_zone", node.Zone)
+		zoneWeight := weight_cal.GetZoneWeight(resolver.zoneAdjuster, "local_zone", node.Zone, 0.05)
 		weight *= zoneWeight
 		node.CurWeight = int(weight)
 		if node.CurWeight == 0 && node.Zone == "local_zone" {
@@ -108,8 +108,8 @@ func (resolver *BalancerAdapter) UpdateServicesNotify(nodes []*balancer_common.S
 func Test_WeightedRobinBalancer(t *testing.T) {
 	Convey("Test_WeightedRobinBalancer", t, func() {
 		//new Adjuster
-		serviceAdjuster := weight_cal.NewWeightAdjuster()
-		zoneAdjuster := weight_cal.NewWeightAdjuster()
+		serviceAdjuster := weight_cal.NewWeightAdjuster(0.9)
+		zoneAdjuster := weight_cal.NewWeightAdjuster(0.9)
 		RandomNotify(50, "192.168.1.1:10000", "local_zone", 0.99, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
 		RandomNotify(50, "192.168.1.2:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
 		RandomNotify(50, "192.168.1.3:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
@@ -186,8 +186,8 @@ func Test_GCD(t *testing.T) {
 func Test_RamdomBalancer(t *testing.T) {
 	Convey("Test_RamdomBalancer", t, func() {
 		//new Adjuster
-		serviceAdjuster := weight_cal.NewWeightAdjuster()
-		zoneAdjuster := weight_cal.NewWeightAdjuster()
+		serviceAdjuster := weight_cal.NewWeightAdjuster(0.9)
+		zoneAdjuster := weight_cal.NewWeightAdjuster(0.9)
 		RandomNotify(50, "192.168.1.1:10000", "local_zone", 0.99, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
 		RandomNotify(50, "192.168.1.2:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
 		RandomNotify(50, "192.168.1.3:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, serviceAdjuster, zoneAdjuster)
@@ -223,7 +223,7 @@ func Test_RamdomBalancer(t *testing.T) {
 			}
 		}()
 
-		for j := 1; j <= 10; j++ {
+		for j := 1; j <= 30; j++ {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 2000; i++ {
@@ -234,6 +234,7 @@ func Test_RamdomBalancer(t *testing.T) {
 				}
 			}
 			fmt.Println("serviceName:192.168.1.2:10000 weight:", serviceAdjuster.GetWeight("192.168.1.2:10000"))
+			fmt.Println("local_zone weight:", zoneAdjuster.GetWeight("local_zone"))
 			keys := []string{}
 			for k, _ := range countMap {
 				keys = append(keys, k)

@@ -16,20 +16,20 @@ func init() {
 		Namespace: "balancer",
 		Subsystem: "v2",
 		Name:      "zone_ip_call_count",
-	}, []string{"zone", "ip", "service"})
+	}, []string{"zone", "loc_ip", "ip", "service"})
 	ZoneWeightHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "balancer",
 		Subsystem: "v2",
 		Name:      "zone_weight",
-	}, []string{"zone", "use_zone", "service"})
+	}, []string{"zone", "loc_ip", "use_zone", "service"})
 	IpWeightHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "balancer",
 		Subsystem: "v2",
 		Name:      "ip_weight",
-	}, []string{"ip", "service"})
+	}, []string{"ip", "loc_ip", "service"})
 	CulWeightHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "balancer",
 		Subsystem: "v2",
 		Name:      "zone_ip_cul_weight",
-	}, []string{"zone", "ip", "use_zone", "service"})
+	}, []string{"zone", "loc_ip", "ip", "use_zone", "service"})
 }

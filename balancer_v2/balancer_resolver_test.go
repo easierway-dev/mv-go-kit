@@ -42,7 +42,7 @@ func Test_BalancerResolver(t *testing.T) {
 		logger := &MyLogger{}
 		//new resolver
 		resolver, err := NewBalancerResolver(balancer_common.WeightedRoundRobin, balancer_common.TestingDiscover,
-			"local_zone", "192.168.1.1:8500", "test_discover_service", time.Duration(2)*time.Second, logger)
+			"local_zone", "192.168.1.1:8500", "test_discover_service", time.Duration(2)*time.Second, logger, Beta(0.9), ZoneStep(0.05), ServiceStep(0.05))
 		if err != nil {
 			fmt.Println("err:", err)
 			return
