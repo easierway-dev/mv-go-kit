@@ -38,7 +38,7 @@ type BalancerResolver struct {
 }
 
 func NewBalancerResolver(balancerType, discoverType int, zoneName string, address string,
-	discoverNode string, interval time.Duration, logger balancer_common.Logger, sybsystem string, options ...Option) (*BalancerResolver, error) {
+	discoverNode string, interval time.Duration, logger balancer_common.Logger, subsystem string, options ...Option) (*BalancerResolver, error) {
 	//create resolver
 	resolver := &BalancerResolver{
 		serviceStep: 0.02,
@@ -46,7 +46,7 @@ func NewBalancerResolver(balancerType, discoverType int, zoneName string, addres
 		beta:        0.9,
 	}
 	//init metrics
-	resolver.InitMetrics(sybsystem)
+	resolver.InitMetrics(subsystem)
 	//init options
 	for _, option := range options {
 		option(resolver)
@@ -142,7 +142,7 @@ func (resolver *BalancerResolver) GetNode() (string, error) {
 	return node.Address, nil
 }
 
-func (resolver *BalancerResolver) InitMetrics(sybsystem string) {
+func (resolver *BalancerResolver) InitMetrics(subsystem string) {
 	resolver.balancerMetrics.ZoneIpCallCounter, resolver.balancerMetrics.ZoneWeightHistogramVec,
-		resolver.balancerMetrics.IpWeightHistogramVec, resolver.balancerMetrics.CulWeightHistogramVec = balancer_common.CreateMetrics(sybsystem)
+		resolver.balancerMetrics.IpWeightHistogramVec, resolver.balancerMetrics.CulWeightHistogramVec = balancer_common.CreateMetrics(subsystem)
 }
