@@ -32,7 +32,11 @@ type BalancerResolver struct {
 func NewBalancerResolver(balancerType, discoverType int, zoneName string,
 	address string, discoverNode string, interval time.Duration, logger balancer_common.Logger, options ...Option) (*BalancerResolver, error) {
 	//create resolver
-	resolver := &BalancerResolver{}
+	resolver := &BalancerResolver{
+		serviceStep: 0.02,
+		zoneStep:    0.05,
+		beta:        0.9,
+	}
 	//init options
 	for _, option := range options {
 		option(resolver)

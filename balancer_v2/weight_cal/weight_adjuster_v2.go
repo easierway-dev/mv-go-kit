@@ -98,7 +98,6 @@ func (adjuster *WeightAdjuster) Notify(key string, event int) {
 	adjuster.mutex.RLock()
 	counter, ok := adjuster.counters[key]
 	adjuster.mutex.RUnlock()
-
 	//init member
 	now := time.Now().Unix()
 	firstCreate := false

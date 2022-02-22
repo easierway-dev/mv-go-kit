@@ -1,34 +1,12 @@
 package discover
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/consul/api"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
 )
-
-// Test Discover Notify
-type MyDiscoverNotify struct {
-}
-
-func (notify *MyDiscoverNotify) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
-	for _, node := range nodes {
-		fmt.Println("notify nodes:", node)
-	}
-	fmt.Println("")
-}
-
-//test logger
-type MyLogger struct {
-}
-
-func (logger *MyLogger) Infof(format string, v ...interface{}) {}
-func (logger *MyLogger) Warnf(format string, v ...interface{}) {}
 
 func NewServiceNode() []*api.ServiceEntry {
 	service1 := &api.AgentService{
@@ -67,22 +45,11 @@ func NewServiceNode() []*api.ServiceEntry {
 	return entrys
 }
 
-func Test_ConsulDiscover(t *testing.T) {
-	Convey("Test_ConsulDiscover", t, func() {
-		discover := &ConsulDiscover{
-			notify: &MyDiscoverNotify{},
-		}
+func Test_UpdateNodes(t *testing.T) {
+	Convey("Test_UpdateNodes", t, func() {
+		discover := &ConsulDiscover{}
 		entrys := NewServiceNode()
-		go func() {
-			ticker := time.NewTicker(time.Duration(2) * time.Second)
-			defer ticker.Stop()
-			for {
-				select {
-				case <-ticker.C:
-					discover.UpdateNodes(entrys)
-				}
-			}
-		}()
-		time.Sleep(time.Duration(10) * time.Second)
+		discover.UpdateNodes(entrys)
+		So(len(discover.nodes), ShouldEqual, 5)
 	})
 }
