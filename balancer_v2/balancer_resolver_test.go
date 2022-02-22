@@ -42,7 +42,7 @@ func Test_BalancerResolver(t *testing.T) {
 		logger := &MyLogger{}
 		//new resolver
 		resolver, err := NewBalancerResolver(balancer_common.WeightedRoundRobin, balancer_common.TestingDiscover,
-			"local_zone", "192.168.1.1:8500", "test_discover_service", time.Duration(2)*time.Second, logger, Beta(0.9), ZoneStep(0.05), ServiceStep(0.05))
+			"local_zone", "192.168.1.1:8500", "test_discover_service", time.Duration(2)*time.Second, logger, "test_subsystem", Beta(0.9), ZoneStep(0.05), ServiceStep(0.05))
 		if err != nil {
 			fmt.Println("err:", err)
 			return
@@ -54,7 +54,7 @@ func Test_BalancerResolver(t *testing.T) {
 		RandomNotify(50, "10.0.0.1:10000", "other_zone1", 0.99, time.Duration(10)*time.Millisecond, resolver)
 		RandomNotify(50, "10.0.2.3:10000", "other_zone2", 0.98, time.Duration(10)*time.Millisecond, resolver)
 		//discover node
-		for j := 1; j <= 10; j++ {
+		for j := 1; j <= 30; j++ {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 5000; i++ {

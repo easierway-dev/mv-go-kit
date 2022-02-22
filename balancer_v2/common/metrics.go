@@ -4,32 +4,26 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var (
-	ZoneIpCallCounter      *prometheus.CounterVec
-	ZoneWeightHistogramVec *prometheus.HistogramVec
-	IpWeightHistogramVec   *prometheus.HistogramVec
-	CulWeightHistogramVec  *prometheus.HistogramVec
-)
-
-func init() {
-	ZoneIpCallCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+func CreateMetrics(sybsystem string) (*prometheus.CounterVec, *prometheus.HistogramVec, *prometheus.HistogramVec, *prometheus.HistogramVec) {
+	zoneIpCallCounter := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "balancer",
-		Subsystem: "v2",
+		Subsystem: sybsystem,
 		Name:      "zone_ip_call_count",
 	}, []string{"zone", "loc_ip", "ip", "service"})
-	ZoneWeightHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	zoneWeightHistogramVec := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "balancer",
-		Subsystem: "v2",
+		Subsystem: sybsystem,
 		Name:      "zone_weight",
 	}, []string{"zone", "loc_ip", "use_zone", "service"})
-	IpWeightHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	ipWeightHistogramVec := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "balancer",
-		Subsystem: "v2",
+		Subsystem: sybsystem,
 		Name:      "ip_weight",
 	}, []string{"ip", "loc_ip", "service"})
-	CulWeightHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	culWeightHistogramVec := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "balancer",
-		Subsystem: "v2",
+		Subsystem: sybsystem,
 		Name:      "zone_ip_cul_weight",
 	}, []string{"zone", "loc_ip", "ip", "use_zone", "service"})
+	return zoneIpCallCounter, zoneWeightHistogramVec, ipWeightHistogramVec, culWeightHistogramVec
 }
