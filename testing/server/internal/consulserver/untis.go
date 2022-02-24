@@ -68,7 +68,7 @@ func timedTask(sm *ServerManager) {
 }
 
 func RunTask(sm *ServerManager) {
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
@@ -78,7 +78,7 @@ func RunTask(sm *ServerManager) {
 }
 
 func TimeTask(sm *ServerManager) {
-	fmt.Println("定时任务开始")
+	fmt.Println("定时任务开始:")
 	sc, _ := FromConsulConfig("47.252.4.203:8500", "/jianjilong")
 	if sc.hashTag == sm.sc.hashTag {
 		// 配置没变，啥也不干
