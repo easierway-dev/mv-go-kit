@@ -237,6 +237,7 @@ func (s *Server) applyProperty(sp *ServerProperty) error {
 		return err
 	}
 	s.registerConfig = registerConfig
+    fmt.Println(s.registerConfig.StringInfo())
 	err = s.registerConfig.Register()
 
 	return err

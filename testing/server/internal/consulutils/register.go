@@ -45,12 +45,12 @@ func registerService(c *RegisterConfig) error {
 			DeregisterCriticalServiceAfter: "10s",
 		},
 	}
-	//err := consulClient.Agent().ServiceRegister(service)
+	err := consulClient.Agent().ServiceRegister(service)
 	fmt.Println("consul register:", service)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return err
-	//}
+	if err != nil {
+		fmt.Println(err)
+    	return err
+	}
 	return nil
 }
 
