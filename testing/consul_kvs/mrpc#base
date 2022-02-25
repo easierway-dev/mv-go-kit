@@ -1,0 +1,3 @@
+region = "aws_vg"
+cloud_url = "http://169.254.169.254/latest/meta-data/public-ipv4"
+zone_id_url = "http://169.254.169.254/latest/meta-data/placement/availability-zone"
