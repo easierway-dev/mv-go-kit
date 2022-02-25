@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
-    "gitlab.mobvista.com/mtech/tracelog/logevent"
+//    "gitlab.mobvista.com/mtech/tracelog/logevent"
 )
 
 type ServerManager struct {
@@ -109,7 +109,8 @@ func (sm *ServerManager) report() {
     serverConfigs :=sm.sc.GetServerConfigs()
     for port, serverProperty := range serverConfigs {
         m := map[string]string{"port": fmt.Sprintf("%d",port), "tag": serverProperty.Tag, "az": serverProperty.AvailabilityZone, "error_rate": fmt.Sprintf("%.3f", serverProperty.ErrRate)}
-        logevent.WithContext(sm.ctx, "server_detail").WithLabelValues(m).Log("record")
+        _ = m
+        //logevent.WithContext(sm.ctx, "server_detail").WithLabelValues(m).Log("record")
      }
 
 

@@ -80,42 +80,5 @@ func RunTask(sm *ServerManager) {
 func TimeTask(sm *ServerManager) {
 	fmt.Println("定时任务开始:")
 	sc, _ := FromConsulConfig("127.0.0.1:8500", CONSULKEY)
-	if sc.hashTag == sm.sc.hashTag {
-		// 配置没变，啥也不干
-		return
-	}
-	// 初始化consul的配置
-	serverConfigs := sc.GetServerConfigs()
-	if len(serverConfigs) == 0 {
-		sm.status = false
-		return
-	}
-	newSMServer := make(map[int]*Server)
-	serverConfigs1 := sm.sc.GetServerConfigs()
-	// create or update and register consulserver
-	for port, serverProperty := range serverConfigs {
-		// 不在原servers这个map中，创建一个server
-		if _, ok := serverConfigs1[port]; !ok {
-			sm.servers[port] = NewServer(port)
-			newSMServer[port] = sm.servers[port]
-			if err := sm.servers[port].applyProperty(serverProperty); err != nil {
-				fmt.Println(err)
-				sm.status = false
-				return
-			}
-		}
-		newSMServer[port] = sm.servers[port]
-		delete(sm.servers, port)
-	}
-	// remove and deregister consulserver
-	for port, server := range sm.servers {
-		if _, ok := serverConfigs[port]; !ok {
-			server.destroy()
-		}
-	}
-	// 更新sm
-	sm.status = true
 	sm.sc = sc
-	sm.servers = newSMServer
-	sm.hashTag = sm.sc.hashTag
 }
