@@ -17,9 +17,8 @@ type ServerManager struct {
 
 func NewServerManager() *ServerManager {
 	fmt.Println("Create ServerManager")
-	// sc := GetServersConfigFromConsul()
-	sc := GetServersConfigFromLocal()
-	//sc, _ := FromConsulConfig("47.252.4.203:8500", "/jianjilong")
+	//sc := GetServersConfigFromLocal()
+	sc, _ := FromConsulConfig("127.0.0.1:8500", CONSULKEY)
 	sm, err := NewServerManagerWithConfig(sc)
 	if err != nil {
 		fmt.Println(err)
@@ -112,6 +111,4 @@ func (sm *ServerManager) report() {
         _ = m
         //logevent.WithContext(sm.ctx, "server_detail").WithLabelValues(m).Log("record")
      }
-
-
 }

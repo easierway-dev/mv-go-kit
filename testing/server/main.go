@@ -20,7 +20,6 @@ func main() {
 	ctx1, span := tr.Start(ctx, "server_serve")
     defer span.End()
 
-
 	sm := consulserver.NewServerManager()
 	go consulserver.RunTask(sm)
 	sm.Serve(ctx1)

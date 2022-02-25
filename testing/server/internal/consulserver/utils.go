@@ -53,32 +53,13 @@ func MD5(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
 }
-func timedTask(sm *ServerManager) {
-	var sy sync.WaitGroup
-	ticker := time.NewTicker(time.Second)
-	sy.Add(1)
-	for {
-		select {
-		case <-ticker.C:
-			defer sy.Done()
-
-		}
-	}
-	sy.Wait()
-}
 
 func RunTask(sm *ServerManager) {
 	ticker := time.NewTicker(10 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
-			TimeTask(sm)
+			sm.sc, _ = FromConsulConfig("127.0.0.1:8500", CONSULKEY)
 		}
 	}
-}
-
-func TimeTask(sm *ServerManager) {
-	fmt.Println("定时任务开始:")
-	sc, _ := FromConsulConfig("127.0.0.1:8500", CONSULKEY)
-	sm.sc = sc
 }
