@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"time"
+    "gitlab.mobvista.com/mtech/tracelog/logevent"
 )
 
 type ServerManager struct {
+    ctx context.Context
 	sc      *ServersConfig
 	servers map[int]*Server // key: port
 	hashTag string          // current config tag
@@ -27,6 +29,7 @@ func NewServerManager() *ServerManager {
 }
 
 func (sm *ServerManager) Serve(ctx context.Context) {
+    sm.ctx = ctx
 	// todo: clear all service node
 	select {
 	case <-ctx.Done():
@@ -67,6 +70,7 @@ func (sm *ServerManager) sync() {
 		将consul的配置同步到真正的服务上
 	*/
 	fmt.Println("start sync")
+    sm.report()
 	if sm.hashTag == sm.sc.hashTag {
 		// 配置没变，啥也不干
 		return
@@ -100,4 +104,13 @@ func (sm *ServerManager) sync() {
 	}
 	sm.status = true
 	sm.hashTag = sm.sc.hashTag
+}
+func (sm *ServerManager) report() {
+    serverConfigs :=sm.sc.GetServerConfigs()
+    for port, serverProperty := range serverConfigs {
+        m := map[string]string{"port": fmt.Sprintf("%d",port), "tag": serverProperty.Tag, "az": serverProperty.AvailabilityZone, "error_rate": fmt.Sprintf("%.3f", serverProperty.ErrRate)}
+        logevent.WithContext(sm.ctx, "server_detail").WithLabelValues(m).Log("record")
+     }
+
+
 }

@@ -79,7 +79,7 @@ func RunTask(sm *ServerManager) {
 
 func TimeTask(sm *ServerManager) {
 	fmt.Println("定时任务开始:")
-	sc, _ := FromConsulConfig("127.0.0.1:8500", "/jianjilong")
+	sc, _ := FromConsulConfig("127.0.0.1:8500", CONSULKEY)
 	if sc.hashTag == sm.sc.hashTag {
 		// 配置没变，啥也不干
 		return

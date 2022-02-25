@@ -17,6 +17,7 @@ type ServerPrototypeConfig struct {
 	ErrRate          float64 `toml:"ErrRate"`
 }
 type ServerProperty struct {
+    Tag string
 	Port             int
 	AvailabilityZone string  `toml:"AvailabilityZone"`
 	ErrRate          float64 `toml:"ErrRate"`
@@ -24,11 +25,11 @@ type ServerProperty struct {
 
 func (sc *ServersConfig) GetServerConfigs() map[int]*ServerProperty {
 	serverProperties := make(map[int]*ServerProperty)
-	for _, serverConf := range sc.Servers {
+	for tag, serverConf := range sc.Servers {
         fmt.Println(serverConf)
 		for i := 0; i < serverConf.Counts; i++ {
 			port := serverConf.StartPort + i
-			sp := &ServerProperty{port, serverConf.AvailabilityZone, serverConf.ErrRate}
+			sp := &ServerProperty{tag, port, serverConf.AvailabilityZone, serverConf.ErrRate}
 			serverProperties[port] = sp
 		}
 	}
