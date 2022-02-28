@@ -100,7 +100,7 @@ func (resolver *BalancerResolver) Start() {
 			select {
 			case <-ticker.C:
 				now := time.Now().Unix()
-				if now-resolver.lastUpdateTime > int64(resolver.interval) {
+				if now-resolver.lastUpdateTime >= int64(resolver.interval.Seconds()) {
 					resolver.UpdateServicesNotify(resolver.nodes)
 				}
 			}
