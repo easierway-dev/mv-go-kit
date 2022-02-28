@@ -49,8 +49,8 @@ func Test_BalancerResolver(t *testing.T) {
 		}
 		//new Notify
 		RandomNotify(50, "192.168.1.1:10000", "local_zone", 0.99, time.Duration(10)*time.Millisecond, resolver)
-		RandomNotify(50, "192.168.1.2:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, resolver)
-		RandomNotify(50, "192.168.1.3:10000", "local_zone", 0.25, time.Duration(10)*time.Millisecond, resolver)
+		RandomNotify(50, "192.168.1.2:10000", "local_zone", 0.75, time.Duration(10)*time.Millisecond, resolver)
+		RandomNotify(50, "192.168.1.3:10000", "local_zone", 0.75, time.Duration(10)*time.Millisecond, resolver)
 		RandomNotify(50, "10.0.0.1:10000", "other_zone1", 0.99, time.Duration(10)*time.Millisecond, resolver)
 		RandomNotify(50, "10.0.2.3:10000", "other_zone2", 0.98, time.Duration(10)*time.Millisecond, resolver)
 		//discover node

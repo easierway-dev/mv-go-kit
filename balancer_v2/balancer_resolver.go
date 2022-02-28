@@ -1,6 +1,7 @@
 package balancer_v2
 
 import (
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -34,6 +35,11 @@ type BalancerResolver struct {
 	zoneStep    float64
 	beta        float64
 
+	lastUpdateTime int64
+	mutex          sync.Mutex
+	nodes          []*balancer_common.ServiceNode
+
+	interval        time.Duration
 	balancerMetrics BalancerMetrics
 }
 
@@ -80,7 +86,26 @@ func NewBalancerResolver(balancerType, discoverType int, zoneName string, addres
 		return nil, err
 	}
 	resolver.discover = discover
+	//Start
+	resolver.interval = interval
+	resolver.Start()
 	return resolver, nil
+}
+
+func (resolver *BalancerResolver) Start() {
+	go func() {
+		ticker := time.NewTicker(resolver.interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				now := time.Now().Unix()
+				if now-resolver.lastUpdateTime > int64(resolver.interval) {
+					resolver.UpdateServicesNotify(resolver.nodes)
+				}
+			}
+		}
+	}()
 }
 
 func (resolver *BalancerResolver) Notify(address string, zone string, event int) {
@@ -93,6 +118,11 @@ func (resolver *BalancerResolver) Notify(address string, zone string, event int)
 }
 
 func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
+	//lock
+	resolver.mutex.Lock()
+	defer resolver.mutex.Unlock()
+	//update lastUpdateTime
+	resolver.lastUpdateTime = time.Now().Unix()
 	//open zone cul
 	useZoneCul := balancer_common.CheckOpenZoneWeight(nodes, resolver.localZone)
 	useZoneCulStr := "0"
@@ -118,6 +148,8 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 		resolver.balancerMetrics.IpWeightHistogramVec.WithLabelValues(node.Address, resolver.localAddress, resolver.discoverNode).Observe(serviceWeight)
 		resolver.balancerMetrics.CulWeightHistogramVec.WithLabelValues(node.Zone, resolver.localAddress, node.Address, useZoneCulStr, resolver.discoverNode).Observe(weight)
 	}
+	//set nodes
+	resolver.nodes = nodes
 	//update weight_cal
 	if resolver.balancer != nil {
 		resolver.balancer.UpdateServices(nodes)
