@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 	"internal/consulutils"
 	"internal/helloworld"
 	"internal/resource"
@@ -32,7 +33,7 @@ type Ops struct {
 
 type Server struct {
 	server         *grpc.Server
-	ServerProperty *ServerProperty
+	serverProperty *ServerProperty
 	registerConfig *consulutils.RegisterConfig
 }
 
@@ -57,9 +58,10 @@ func NewServer(port int) *Server {
 
 // SayHello implements api.HelloServiceServer
 func (s *Server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
-	fmt.Printf("Received: %v\n", in.GetName())
-	if rand.Float64() < s.ServerProperty.ErrRate {
-		return &helloworld.HelloReply{s.registerConfig.StringInfo()}, errors.New("make failed")
+	time.Sleep(time.Millisecond)
+
+	if rand.Float64() < s.serverProperty.ErrRate {
+		return &helloworld.HelloReply{s.registerConfig.StringInfo()}, status.Errorf(400, "fail")
 	}
 	return &helloworld.HelloReply{s.registerConfig.StringInfo()}, nil
 }
@@ -70,9 +72,9 @@ func (s *Server) applyProperty(sp *ServerProperty) error {
 	if err != nil {
 		return err
 	}
+	s.serverProperty = sp
 	s.registerConfig = registerConfig
 	fmt.Println("[applyProperty]", s.registerConfig.StringInfo())
-	s.registerConfig.Deregister()
 	err = s.registerConfig.Register()
 
 	return err

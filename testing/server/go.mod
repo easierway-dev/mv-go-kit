@@ -21,7 +21,7 @@ require (
 	github.com/gfremex/logrus-kafka-hook v0.0.0-20180109031623-f62e125fcbfe // indirect
 	github.com/hashicorp/consul/api v1.12.0
 	github.com/pkg/errors v0.8.1
-	gitlab.mobvista.com/mtech/tracelog v1.2.2
+	gitlab.mobvista.com/mtech/tracelog v1.2.3
 	go.opentelemetry.io/otel v1.0.0-RC3
 	google.golang.org/grpc v1.25.1
 	gopkg.in/sohlich/elogrus.v7 v7.0.0 // indirect

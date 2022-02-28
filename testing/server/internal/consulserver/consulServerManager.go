@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
-//    "gitlab.mobvista.com/mtech/tracelog/logevent"
+    "gitlab.mobvista.com/mtech/tracelog/logevent"
 )
 
 type ServerManager struct {
@@ -17,8 +17,13 @@ type ServerManager struct {
 
 func NewServerManager() *ServerManager {
 	fmt.Println("Create ServerManager")
-	//sc := GetServersConfigFromLocal()
-	sc, _ := FromConsulConfig("127.0.0.1:8500", CONSULKEY)
+    sc, err := FromConsulConfig("127.0.0.1:8500", CONSULKEY)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	// sc := GetServersConfigFromLocal()
+	//sc, _ := FromConsulConfig("47.252.4.203:8500", "/jianjilong")
 	sm, err := NewServerManagerWithConfig(sc)
 	if err != nil {
 		fmt.Println(err)
@@ -109,6 +114,8 @@ func (sm *ServerManager) report() {
     for port, serverProperty := range serverConfigs {
         m := map[string]string{"port": fmt.Sprintf("%d",port), "tag": serverProperty.Tag, "az": serverProperty.AvailabilityZone, "error_rate": fmt.Sprintf("%.3f", serverProperty.ErrRate)}
         _ = m
-        //logevent.WithContext(sm.ctx, "server_detail").WithLabelValues(m).Log("record")
+        logevent.WithContext(sm.ctx, "server_detail").WithLabelValues(m).Log("record")
      }
+
+
 }

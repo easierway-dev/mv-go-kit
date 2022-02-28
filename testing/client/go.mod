@@ -69,7 +69,7 @@ require (
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shirou/gopsutil v2.19.10+incompatible // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
-	gitlab.mobvista.com/mtech/tracelog v1.2.2
+	gitlab.mobvista.com/mtech/tracelog v1.2.3
 	gitlab.mobvista.com/voyager/configer v0.1.0 // indirect
 	gitlab.mobvista.com/voyager/mv-go-kit v1.0.2-0.20220222025551-bd1974242d52 // indirect
 	gitlab.mobvista.com/voyager/zlog v0.0.8

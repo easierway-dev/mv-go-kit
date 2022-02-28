@@ -3,10 +3,8 @@ package consulserver
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/hashicorp/consul/api"
-	"sync"
 	"time"
 	"unsafe"
 )
