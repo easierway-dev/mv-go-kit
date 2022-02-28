@@ -1,11 +1,11 @@
 [Servers.az_1]
 Counts = 10
-StartPort = 35000
+StartPort = 6000
 AvailabilityZone = "us-east-1b"
 ErrRate = 0.1
 
 [Servers.az_2]
 Counts = 10
-StartPort = 65000
+StartPort = 7000
 AvailabilityZone = "az_2"
 ErrRate = 0.1
