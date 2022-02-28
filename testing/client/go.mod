@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/aws/aws-sdk-go v1.42.23
-	gitlab.mobvista.com/voyager/mrpc v0.0.39-0.20220223111139-92ef80b3422c
+	gitlab.mobvista.com/voyager/mrpc add_balancer_v2
 	gitlab.mobvista.com/voyager/protocols v0.7.79-0.20220225023033-ef9ade8d69c4
 )
 
