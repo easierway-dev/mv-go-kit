@@ -98,9 +98,11 @@ func (discover *ConsulDiscover) UpdateNodes(services []*api.ServiceEntry) {
 		if service.Service.Address == "" || service.Service.Port == 0 {
 			continue
 		}
-		zone := "empty"
+		zone := ""
 		if zoneStr, ok := service.Service.Meta["__zone_id"]; ok {
 			zone = zoneStr
+		} else {
+			continue
 		}
 		weight := 100
 		if weightStr, ok := service.Service.Meta["__weight"]; ok {
