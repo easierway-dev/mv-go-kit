@@ -28,19 +28,32 @@ func NewRandomBalancer(localZoneName string, discoverNode string) Balancer {
 }
 
 func (balancer *RandomBalancer) UpdateServices(nodes []*balancer_common.ServiceNode) error {
-	factors := make([]int, 0, len(nodes))
-	//cul Weight
-	maxFactors := 0
+	//ramdom weights
+	weights := make([]*balancer_common.ServiceNode, 0, len(nodes))
 	for _, node := range nodes {
+		if node.CurWeight == 0 {
+			continue
+		}
+		weights = append(weights, node)
+	}
+	//rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(weights), func(i, j int) {
+		weights[i], weights[j] = weights[j], weights[i]
+	})
+	//cul Weight
+	factors := make([]int, 0, len(weights))
+	maxFactors := 0
+	for _, node := range weights {
 		maxFactors += node.CurWeight
 		//set nodes
 		factors = append(factors, maxFactors)
 	}
+	//set number
 	balancer.rwMutex.Lock()
 	defer balancer.rwMutex.Unlock()
 	balancer.MaxFactors = maxFactors
 	balancer.Factors = factors
-	balancer.Weights = nodes
+	balancer.Weights = weights
 	return nil
 }
 
