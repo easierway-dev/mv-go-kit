@@ -6,7 +6,6 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/hashicorp/consul/api v1.11.0
 	github.com/hashicorp/go-hclog v0.14.1 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.0 // indirect
@@ -24,9 +23,9 @@ require (
 	github.com/shirou/gopsutil v2.19.10+incompatible
 	github.com/sirupsen/logrus v1.6.0
 	github.com/smartystreets/goconvey v1.7.2
-	github.com/stretchr/testify v1.7.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.25.0
+	go.opentelemetry.io/otel v1.1.0 // indirect
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/grpc v1.34.0
+	google.golang.org/grpc v1.40.0
 )
