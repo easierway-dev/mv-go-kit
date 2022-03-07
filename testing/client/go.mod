@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/aws/aws-sdk-go v1.42.23
-	gitlab.mobvista.com/voyager/mrpc add_balancer_v2
+	gitlab.mobvista.com/voyager/mrpc v0.0.43
 	gitlab.mobvista.com/voyager/protocols v0.7.79-0.20220225023033-ef9ade8d69c4
 )
 
@@ -71,7 +71,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	gitlab.mobvista.com/mtech/tracelog v1.2.3
 	gitlab.mobvista.com/voyager/configer v0.1.0 // indirect
-	gitlab.mobvista.com/voyager/mv-go-kit v1.0.2-0.20220222025551-bd1974242d52 // indirect
+	gitlab.mobvista.com/voyager/mv-go-kit v1.0.3
 	gitlab.mobvista.com/voyager/zlog v0.0.8
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.27.0 // indirect
 	go.opentelemetry.io/otel v1.2.0
