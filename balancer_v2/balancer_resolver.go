@@ -146,7 +146,7 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 		//add metrics
 		//resolver.balancerMetrics.ZoneWeightHistogramVec.WithLabelValues(node.Zone, resolver.localAddress, useZoneCulStr, resolver.discoverNode).Observe(zoneWeight)
 		//resolver.balancerMetrics.IpWeightHistogramVec.WithLabelValues(node.Address, resolver.localAddress, resolver.discoverNode).Observe(serviceWeight)
-		resolver.balancerMetrics.CulWeightHistogramVec.WithLabelValues(node.Zone, resolver.localAddress, node.Address, useZoneCulStr, resolver.discoverNode).Observe(weight)
+		resolver.balancerMetrics.CulWeightHistogramVec.WithLabelValues(node.Zone, resolver.localZone, node.Address, useZoneCulStr, resolver.discoverNode).Observe(weight)
 	}
 	//set nodes
 	resolver.nodes = nodes
@@ -162,7 +162,7 @@ func (resolver *BalancerResolver) DiscoverNode() (*balancer_common.ServiceNode, 
 		return nil, err
 	}
 	//add metrics
-	resolver.balancerMetrics.ZoneIpCallCounter.WithLabelValues(node.Zone, resolver.localAddress, node.Address, resolver.discoverNode).Inc()
+	resolver.balancerMetrics.ZoneIpCallCounter.WithLabelValues(node.Zone, resolver.localZone, node.Address, resolver.discoverNode).Inc()
 	return node, nil
 }
 
