@@ -1,0 +1,4 @@
+[new_balancer_services.lb_server_demo]
+beta = 0.95
+zone_step = 0.05
+service_step = 0.02

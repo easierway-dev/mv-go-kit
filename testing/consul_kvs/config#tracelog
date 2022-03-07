@@ -1,0 +1,8 @@
+JaegerAgentEndpoint="jaeger-agent:6831"
+SampleRatio=1.0
+RootServer = ["lb_test_server", "lb_test_client"]
+[LoggingExporter]
+ExporterType = "ES"
+ElasticSearchUrl = "http://rta-logger-2089710578.us-east-1.elb.amazonaws.com:9200"
+
+

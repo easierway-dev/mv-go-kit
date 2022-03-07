@@ -1,0 +1,26 @@
+version: '3.7'   
+services:   #定义多个容器服务
+  golang:
+    image: hub.mobvista.com/dspauto/goland:ci
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./:/data
+    # command: "apt-get install redir && nohup redir --lport=8500 --caddr='consul' --cport=8500 >> /tmp/consul_port_forward.log & && tail -f /dev/null"
+    command: "tail -f /dev/null"
+  consul:
+    image: hub.mobvista.com/dsp_public/consul:latest
+    command: agent -server -hcl 'limits{http_max_conns_per_client=55535}' -bind=0.0.0.0 -client=0.0.0.0 -node=consul_Server1 -bootstrap-expect=1 -ui
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - 28500:8500
+
+
+
+
+
+
+
