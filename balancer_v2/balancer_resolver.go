@@ -4,20 +4,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/balancer"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/discover"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/weight_cal"
 )
-
-type BalancerMetrics struct {
-	ZoneIpCallCounter      *prometheus.CounterVec
-	ZoneWeightHistogramVec *prometheus.HistogramVec
-	IpWeightHistogramVec   *prometheus.HistogramVec
-	CulWeightHistogramVec  *prometheus.HistogramVec
-}
 
 type BalancerResolver struct {
 	discover discover.Discover //service discover
@@ -39,8 +30,7 @@ type BalancerResolver struct {
 	mutex          sync.Mutex
 	nodes          []*balancer_common.ServiceNode
 
-	interval        time.Duration
-	balancerMetrics BalancerMetrics
+	interval time.Duration
 }
 
 func NewBalancerResolver(balancerType, discoverType int, zoneName string, address string,
@@ -51,8 +41,6 @@ func NewBalancerResolver(balancerType, discoverType int, zoneName string, addres
 		zoneStep:    0.05,
 		beta:        0.9,
 	}
-	//init metrics
-	resolver.InitMetrics(subsystem)
 	//init options
 	for _, option := range options {
 		option(resolver)
@@ -143,10 +131,6 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 		if node.CurWeight == 0 && node.Zone == resolver.localZone {
 			node.CurWeight = 1
 		}
-		//add metrics
-		//resolver.balancerMetrics.ZoneWeightHistogramVec.WithLabelValues(node.Zone, resolver.localAddress, useZoneCulStr, resolver.discoverNode).Observe(zoneWeight)
-		//resolver.balancerMetrics.IpWeightHistogramVec.WithLabelValues(node.Address, resolver.localAddress, resolver.discoverNode).Observe(serviceWeight)
-		//resolver.balancerMetrics.CulWeightHistogramVec.WithLabelValues(node.Zone, resolver.localZone, node.Address, useZoneCulStr, resolver.discoverNode).Observe(weight)
 	}
 	//set nodes
 	resolver.nodes = nodes
@@ -162,7 +146,7 @@ func (resolver *BalancerResolver) DiscoverNode() (*balancer_common.ServiceNode, 
 		return nil, err
 	}
 	//add metrics
-	resolver.balancerMetrics.ZoneIpCallCounter.WithLabelValues(node.Zone, resolver.localZone, node.Address, resolver.discoverNode).Inc()
+	balancer_common.ZoneIpCallCounter.WithLabelValues(node.Zone, resolver.localZone, node.Address, resolver.discoverNode).Inc()
 	return node, nil
 }
 
@@ -172,9 +156,4 @@ func (resolver *BalancerResolver) GetNode() (string, error) {
 		return "", err
 	}
 	return node.Address, nil
-}
-
-func (resolver *BalancerResolver) InitMetrics(subsystem string) {
-	resolver.balancerMetrics.ZoneIpCallCounter, resolver.balancerMetrics.ZoneWeightHistogramVec,
-		resolver.balancerMetrics.IpWeightHistogramVec, resolver.balancerMetrics.CulWeightHistogramVec = balancer_common.CreateMetrics(subsystem)
 }
