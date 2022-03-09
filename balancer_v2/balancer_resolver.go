@@ -125,10 +125,10 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 	resolver.lastUpdateTime = time.Now().Unix()
 	//open zone cul
 	useZoneCul := balancer_common.CheckOpenZoneWeight(nodes, resolver.localZone)
-	useZoneCulStr := "0"
+	/*useZoneCulStr := "0"
 	if useZoneCul {
 		useZoneCulStr = "1"
-	}
+	}*/
 	//cal CurWeight
 	for _, node := range nodes {
 		//cul zone Weight
