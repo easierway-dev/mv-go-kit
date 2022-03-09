@@ -9,7 +9,7 @@ func CreateMetrics(subsystem string) (*prometheus.CounterVec, *prometheus.Histog
 		Namespace: "balancer",
 		Subsystem: subsystem,
 		Name:      "zone_ip_call_count",
-	}, []string{"zone", "loc_zone", "ip", "service"})
+	}, []string{"zone", "loc_zone", "remote_ip", "service"})
 	prometheus.MustRegister(zoneIpCallCounter)
 
 	zoneWeightHistogramVec := prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -23,14 +23,14 @@ func CreateMetrics(subsystem string) (*prometheus.CounterVec, *prometheus.Histog
 		Namespace: "balancer",
 		Subsystem: subsystem,
 		Name:      "ip_weight",
-	}, []string{"ip", "loc_zone", "service"})
+	}, []string{"remote_ip", "loc_zone", "service"})
 	prometheus.MustRegister(ipWeightHistogramVec)
 
 	culWeightHistogramVec := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "balancer",
 		Subsystem: subsystem,
 		Name:      "zone_ip_cul_weight",
-	}, []string{"zone", "loc_zone", "ip", "use_zone", "service"})
+	}, []string{"zone", "loc_zone", "remote_ip", "use_zone", "service"})
 	prometheus.MustRegister(culWeightHistogramVec)
 	return zoneIpCallCounter, zoneWeightHistogramVec, ipWeightHistogramVec, culWeightHistogramVec
 }
