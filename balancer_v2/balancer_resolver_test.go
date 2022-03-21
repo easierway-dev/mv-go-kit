@@ -23,10 +23,12 @@ func RandomNotify(size int, serviceName string, zoneName string, successRatio fl
 		go func() {
 			ticker := time.NewTicker(interval)
 			defer ticker.Stop()
+			count := 0
 			for {
 				select {
 				case <-ticker.C:
-					if rand.Float64() <= successRatio {
+					count += 1
+					if count > 6000 || rand.Float64() <= successRatio {
 						resolver.Notify(serviceName, zoneName, balancer_common.Success)
 					} else {
 						resolver.Notify(serviceName, zoneName, balancer_common.Failed)
@@ -42,7 +44,7 @@ func Test_BalancerResolver(t *testing.T) {
 		logger := &MyLogger{}
 		//new resolver
 		resolver, err := NewBalancerResolver(balancer_common.RandomSelect, balancer_common.TestingDiscover,
-			"local_zone", "192.168.1.1:8500", "test_discover_service", time.Duration(10)*time.Second, logger, "test_subsystem", Beta(0.9), ZoneStep(0.05), ServiceStep(0.05))
+			"local_zone", "192.168.1.1:8500", "test_discover_service", time.Duration(2)*time.Second, logger, "test_subsystem", Beta(0.9), ZoneStep(0.05), ServiceStep(0.02), OpenZoneWeight(true))
 		if err != nil {
 			fmt.Println("err:", err)
 			return
@@ -50,11 +52,11 @@ func Test_BalancerResolver(t *testing.T) {
 		//new Notify
 		RandomNotify(50, "192.168.1.1:10000", "local_zone", 0.99, time.Duration(10)*time.Millisecond, resolver)
 		RandomNotify(50, "192.168.1.2:10000", "local_zone", 0.99, time.Duration(10)*time.Millisecond, resolver)
-		RandomNotify(50, "192.168.1.3:10000", "local_zone", 0.99, time.Duration(10)*time.Millisecond, resolver)
+		RandomNotify(50, "192.168.1.3:10000", "local_zone", 0.00, time.Duration(10)*time.Millisecond, resolver)
 		RandomNotify(50, "10.0.0.1:10000", "other_zone1", 0.99, time.Duration(10)*time.Millisecond, resolver)
 		RandomNotify(50, "10.0.2.3:10000", "other_zone2", 0.98, time.Duration(10)*time.Millisecond, resolver)
 		//discover node
-		for j := 1; j <= 30; j++ {
+		for j := 1; j <= 120; j++ {
 			time.Sleep(time.Duration(1) * time.Second)
 			countMap := make(map[string]int)
 			for i := 0; i < 5000; i++ {

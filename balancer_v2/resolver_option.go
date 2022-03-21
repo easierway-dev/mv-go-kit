@@ -19,3 +19,9 @@ func ServiceStep(serviceStep float64) Option {
 		resolver.serviceStep = serviceStep
 	}
 }
+
+func OpenZoneWeight(openZoneWeight bool) Option {
+	return func(resolver *BalancerResolver) {
+		resolver.openZoneWeight = openZoneWeight
+	}
+}
