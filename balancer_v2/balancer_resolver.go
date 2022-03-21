@@ -30,16 +30,18 @@ type BalancerResolver struct {
 	mutex          sync.Mutex
 	nodes          []*balancer_common.ServiceNode
 
-	interval time.Duration
+	openZoneWeight bool
+	interval       time.Duration
 }
 
 func NewBalancerResolver(balancerType, discoverType int, zoneName string, address string,
 	discoverNode string, interval time.Duration, logger balancer_common.Logger, subsystem string, options ...Option) (*BalancerResolver, error) {
 	//create resolver
 	resolver := &BalancerResolver{
-		serviceStep: 0.02,
-		zoneStep:    0.05,
-		beta:        0.9,
+		serviceStep:    0.02,
+		zoneStep:       0.05,
+		beta:           0.9,
+		openZoneWeight: true,
 	}
 	//init options
 	for _, option := range options {
@@ -112,7 +114,10 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 	//update lastUpdateTime
 	resolver.lastUpdateTime = time.Now().Unix()
 	//open zone cul
-	useZoneCul := balancer_common.CheckOpenZoneWeight(nodes, resolver.localZone)
+	useZoneCul := false
+	if resolver.openZoneWeight {
+		useZoneCul = balancer_common.CheckOpenZoneWeight(nodes, resolver.localZone)
+	}
 	/*useZoneCulStr := "0"
 	if useZoneCul {
 		useZoneCulStr = "1"

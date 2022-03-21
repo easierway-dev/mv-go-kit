@@ -24,7 +24,7 @@ func GetRatioByStep(ratio float64, step float64) float64 {
 			break
 		}
 		beginRatio -= step
-		if beginRatio <= 0 {
+		if beginRatio <= step {
 			beginRatio = step
 			break
 		}
