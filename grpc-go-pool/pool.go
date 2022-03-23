@@ -68,7 +68,7 @@ func New(factory Factory, init, capacity int, idleTimeout time.Duration,
 	var unReachedClientNum int32
 	for i := 0; i < init; i++ {
 		c, err := factory()
-		if err != nil { // 如果没有连接上，则只为空client
+		if err != nil { // 如果没有连接上，则置为空client
 			unReachedClientNum = unReachedClientNum + 1
 			p.clients <- ClientConn{
 				pool: p,
