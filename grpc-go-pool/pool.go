@@ -46,7 +46,7 @@ type ClientConn struct {
 // and the timeout for the idle clients. Returns an error if the initial
 // clients could not be created
 func New(factory Factory, init, capacity int, idleTimeout time.Duration,
-	maxLifeDuration ...time.Duration) (*Pool, error, int32) {
+	maxLifeDuration ...time.Duration) (*Pool, error, int, int) {
 
 	if capacity <= 0 {
 		capacity = 1
@@ -65,7 +65,7 @@ func New(factory Factory, init, capacity int, idleTimeout time.Duration,
 	if len(maxLifeDuration) > 0 {
 		p.maxLifeDuration = maxLifeDuration[0]
 	}
-	var unReachedClientNum int32
+	var unReachedClientNum int
 	for i := 0; i < init; i++ {
 		c, err := factory()
 		if err != nil { // 如果没有连接上，则置为空client
@@ -89,7 +89,7 @@ func New(factory Factory, init, capacity int, idleTimeout time.Duration,
 			pool: p,
 		}
 	}
-	return p, nil, unReachedClientNum
+	return p, nil, init, unReachedClientNum
 }
 
 func (p *Pool) getClients() chan ClientConn {
