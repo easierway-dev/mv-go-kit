@@ -65,7 +65,7 @@ func New(factory Factory, init, capacity int, idleTimeout time.Duration,
 	if len(maxLifeDuration) > 0 {
 		p.maxLifeDuration = maxLifeDuration[0]
 	}
-	var unReachedClientNum int32
+	var unReachedClientNum int
 	for i := 0; i < init; i++ {
 		c, err := factory()
 		if err != nil { // 如果没有连接上，则置为空client
