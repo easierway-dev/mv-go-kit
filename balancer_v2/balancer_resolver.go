@@ -89,10 +89,12 @@ func (resolver *BalancerResolver) Start() {
 		for {
 			select {
 			case <-ticker.C:
+				resolver.mutex.Lock()
 				now := time.Now().Unix()
 				if now-resolver.lastUpdateTime >= int64(resolver.interval.Seconds()) {
-					resolver.UpdateServicesNotify(resolver.nodes)
+					resolver.updateServiceWeight(resolver.nodes)
 				}
+				resolver.mutex.Unlock()
 			}
 		}
 	}()
@@ -107,10 +109,7 @@ func (resolver *BalancerResolver) Notify(address string, zone string, event int)
 	}
 }
 
-func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
-	//lock
-	resolver.mutex.Lock()
-	defer resolver.mutex.Unlock()
+func (resolver *BalancerResolver) updateServiceWeight(nodes []*balancer_common.ServiceNode) {
 	//update lastUpdateTime
 	resolver.lastUpdateTime = time.Now().Unix()
 	//open zone cul
@@ -143,6 +142,12 @@ func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.
 	if resolver.balancer != nil {
 		resolver.balancer.UpdateServices(nodes)
 	}
+}
+
+func (resolver *BalancerResolver) UpdateServicesNotify(nodes []*balancer_common.ServiceNode) {
+	resolver.mutex.Lock()
+	defer resolver.mutex.Unlock()
+	resolver.updateServiceWeight(nodes)
 }
 
 func (resolver *BalancerResolver) DiscoverNode() (*balancer_common.ServiceNode, error) {
