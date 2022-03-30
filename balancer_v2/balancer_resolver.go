@@ -1,13 +1,12 @@
 package balancer_v2
 
 import (
-	"sync"
-	"time"
-
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/balancer"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/common"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/discover"
 	"gitlab.mobvista.com/voyager/mv-go-kit/balancer_v2/weight_cal"
+	"sync"
+	"time"
 )
 
 type BalancerResolver struct {
@@ -29,6 +28,7 @@ type BalancerResolver struct {
 	lastUpdateTime int64
 	mutex          sync.Mutex
 	nodes          []*balancer_common.ServiceNode
+	addrNodeMap    *map[string]*balancer_common.ServiceNode
 
 	openZoneWeight bool
 	interval       time.Duration
@@ -109,6 +109,19 @@ func (resolver *BalancerResolver) Notify(address string, zone string, event int)
 	}
 }
 
+func (resolver *BalancerResolver) NotifyWithAddress(address string, event int) {
+	addrNode := resolver.addrNodeMap
+	if addrNode != nil {
+		node, ok := (*addrNode)[address]
+		if ok && node != nil {
+			resolver.Notify(node.Address, node.Zone, event)
+			//fmt.Printf("notify %s, %s, %d\n", node.Address, node.Zone, event)
+			return
+		}
+	}
+	//fmt.Printf("notify nodes not find %s\n", ip)
+}
+
 func (resolver *BalancerResolver) updateServiceWeight(nodes []*balancer_common.ServiceNode) {
 	//update lastUpdateTime
 	resolver.lastUpdateTime = time.Now().Unix()
@@ -121,8 +134,13 @@ func (resolver *BalancerResolver) updateServiceWeight(nodes []*balancer_common.S
 	if useZoneCul {
 		useZoneCulStr = "1"
 	}*/
+
+	addrNodeMap := make(map[string]*balancer_common.ServiceNode)
+
 	//cal CurWeight
 	for _, node := range nodes {
+		addrNodeMap[node.Address] = node
+
 		//cul zone Weight
 		serviceWeight := weight_cal.GetServiceWeight(resolver.serviceAdjuster, node.Address, resolver.serviceStep)
 		weight := float64(node.Weight) * serviceWeight
@@ -138,6 +156,8 @@ func (resolver *BalancerResolver) updateServiceWeight(nodes []*balancer_common.S
 	}
 	//set nodes
 	resolver.nodes = nodes
+	resolver.addrNodeMap = &addrNodeMap
+
 	//update weight_cal
 	if resolver.balancer != nil {
 		resolver.balancer.UpdateServices(nodes)
